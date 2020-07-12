@@ -9,8 +9,8 @@ import java.util.Properties;
 
 public class PropertiesManager {
     public static Properties getProperties(String name) {
-        String rootPath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("")).getPath();
-        rootPath = new File("").getAbsolutePath() + "/src/main/resources/";
+        //String rootPath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("")).getPath();
+        String rootPath = new File("").getAbsolutePath() + "/src/main/resources/";
         String appConfigPath = rootPath + "properties/" + name + ".properties";
         Properties props = new Properties();
         try {
