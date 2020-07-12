@@ -8,9 +8,6 @@
     <artifactId>WildBerriesParserBotTG</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <properties>
-        <kotlin.version>1.3.70</kotlin.version>
-    </properties>
     <build>
         <plugins>
             <plugin>
@@ -54,30 +51,6 @@
                 <version>1.6.0</version>
                 <configuration>
                     <mainClass>App</mainClass>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-maven-plugin</artifactId>
-                <version>${kotlin.version}</version>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <jvmTarget>1.8</jvmTarget>
                 </configuration>
             </plugin>
             <plugin>
