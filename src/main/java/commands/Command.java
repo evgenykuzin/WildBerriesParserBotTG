@@ -8,9 +8,9 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 public class Command {
     private String name;
     private ActionSetter actionSetter;
-    public Command(String name){
+
+    public Command(String name) {
         this.name = name;
-        actionSetter = new SendMessageActionSetter(name);
     }
 
     public Command(String name, ActionSetter actionSetter){
@@ -19,8 +19,7 @@ public class Command {
     }
 
     public Command(String name, String answer) {
-        this.name = name;
-        actionSetter = new SendMessageActionSetter(answer);
+        this(name, new SendMessageActionSetter(answer));
 
     }
 
@@ -40,11 +39,11 @@ public class Command {
         return actionSetter.action(message);
     }
 
-    public static abstract class ActionSetter {
+    public interface ActionSetter {
         public abstract BotApiMethod action(Message message);
     }
 
-    public static class SendMessageActionSetter extends ActionSetter{
+    public static class SendMessageActionSetter implements ActionSetter {
         private String msg;
         public SendMessageActionSetter(String msg){
             this.msg = msg;

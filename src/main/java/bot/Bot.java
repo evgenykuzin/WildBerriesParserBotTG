@@ -26,6 +26,7 @@ public class Bot extends TelegramLongPollingBot {
         if (!withoutProps) {
             loadProps();
         }
+        System.out.println("run!");
     }
 
     private void loadProps() {
