@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="wildberries@localhost" uuid="70d97824-9034-41e9-bc6f-5c5308cf4876">
+    <data-source source="LOCAL" name="hqba6fik9xx3mt4x@e11wl4mksauxgu1w.cbetxkdyhwsb.us-east-1.rds.amazonaws.com" uuid="ff9da1b0-0259-4bbc-a445-c226afa18b8b">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://localhost:3306/wildberries?serverTimezone=UTC</jdbc-url>
-      <driver-properties>
-        <property name="serverTimezone" value="UTC" />
-      </driver-properties>
+      <jdbc-url>jdbc:mysql://e11wl4mksauxgu1w.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/hqba6fik9xx3mt4x</jdbc-url>
     </data-source>
   </component>
 </project>
