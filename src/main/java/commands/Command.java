@@ -13,7 +13,7 @@ public class Command {
         this.name = name;
     }
 
-    public Command(String name, ActionSetter actionSetter){
+    public Command(String name, ActionSetter actionSetter) {
         this.name = name;
         this.actionSetter = actionSetter;
     }
@@ -23,7 +23,7 @@ public class Command {
 
     }
 
-    public boolean isName(String name){
+    public boolean isName(String name) {
         return name.contains(this.name);
     }
 
@@ -31,23 +31,25 @@ public class Command {
         return name;
     }
 
-    public void setAction(ActionSetter actionSetter){
+    public void setAction(ActionSetter actionSetter) {
         this.actionSetter = actionSetter;
     }
 
-    public BotApiMethod action(Message message){
+    public BotApiMethod action(Message message) {
         return actionSetter.action(message);
     }
 
     public interface ActionSetter {
-        public abstract BotApiMethod action(Message message);
+        BotApiMethod action(Message message);
     }
 
     public static class SendMessageActionSetter implements ActionSetter {
         private String msg;
-        public SendMessageActionSetter(String msg){
+
+        public SendMessageActionSetter(String msg) {
             this.msg = msg;
         }
+
         public synchronized BotApiMethod sendMsg(Message message, String s) {
             SendMessage sendMessage = new SendMessage();
             sendMessage.enableMarkdown(true);
@@ -55,6 +57,7 @@ public class Command {
             sendMessage.setText(s);
             return sendMessage;
         }
+
         @Override
         public BotApiMethod action(Message message) {
             return sendMsg(message, msg);

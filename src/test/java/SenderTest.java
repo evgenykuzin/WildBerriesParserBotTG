@@ -16,7 +16,7 @@ public class SenderTest {
         Bot bot = new Bot(true);
         ShopParser shopParser = new ShopParser();
         Set<String> linksSet = new HashSet<>();
-        Sender sender = new Sender(bot, shopParser, linksSet);
+        Sender sender = new Sender(bot, shopParser, linksSet, new DatabaseManager());
         String url = "https://www.wildberries.ru/catalog/7696800/detail.aspx?targetUrl=GP";
         String productName = "Бандана";
         String brandName = "COLORE CALDO /";
@@ -43,7 +43,7 @@ public class SenderTest {
         savedProduct.setDiscountPercent(90.0);
 
         sender.compareAndUpdateProducts(parsedProduct, savedProduct);
-        Product updatedProduct = new DatabaseManager().getExistingEntityByUrl(parsedProduct.getUrl());
+        Product updatedProduct = new DatabaseManager().getExistingProductByUrl(parsedProduct.getUrl());
         Assertions.assertEquals(expectedProduct, updatedProduct);
         new DatabaseManager().updateProduct(savedProduct);
     }

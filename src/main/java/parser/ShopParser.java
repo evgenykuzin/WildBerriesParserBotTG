@@ -7,7 +7,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import utils.BlackLists;
 
 import java.io.IOException;
 import java.net.URL;
@@ -16,25 +15,13 @@ import java.util.Set;
 
 public class ShopParser {
     Set<String> linksSet;
-    Queue<Product> productQueue;
     Bot bot;
 
-    public ShopParser(Set<String> linksSet, Queue<Product> productQueue) {
+    public ShopParser(Set<String> linksSet) {
         this.linksSet = linksSet;
-        this.productQueue = productQueue;
     }
 
     public ShopParser(){}
-
-    public void parse() {
-        for (String link : linksSet) {
-            Elements category = parseCategory(link);
-            for (Element element : category) {
-                Product product = parseProduct(element);
-                productQueue.add(product);
-            }
-        }
-    }
 
     public Elements parseCategory(String link) {
         Document doc;
@@ -47,11 +34,11 @@ public class ShopParser {
         return new Elements();
     }
 
-    public Product parseProduct(Element element) {
+    public Product parseProduct(Element element, Set<String> ignoredBrands) {
         Product product;
         String productName = element.getElementsByClass("goods-name c-text-sm").text();
         String brandName = element.getElementsByClass("brand-name c-text-sm").text();
-        if (BlackLists.containsInBrandBL(brandName)) return null;
+        if (ignoredBrands.contains(brandName)) return null;
         String np = element.getElementsByClass("lower-price").text();
         String dp = element.getElementsByClass("price-sale active").text();
         String op = element.getElementsByClass("price-old-block").html().split("</del>")[0];
@@ -91,14 +78,6 @@ public class ShopParser {
 
     public void setLinksSet(Set<String> linksSet) {
         this.linksSet = linksSet;
-    }
-
-    public Queue<Product> getProductQueue() {
-        return productQueue;
-    }
-
-    public void setProductQueue(Queue<Product> productQueue) {
-        this.productQueue = productQueue;
     }
 
     private void sendMessage(String message) {

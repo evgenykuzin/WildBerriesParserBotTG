@@ -16,11 +16,11 @@ public class Sender extends Thread {
     private volatile Boolean running;
     private volatile long lastCall = 0;
 
-    public Sender(Bot bot, ShopParser shopParser, Set<String> linksSet) {
+    public Sender(Bot bot, ShopParser shopParser, Set<String> linksSet, DatabaseManager databaseManager) {
         this.bot = bot;
         this.shopParser = shopParser;
         this.linksSet = linksSet;
-        databaseManager = new DatabaseManager();
+        this.databaseManager = databaseManager;
         running = Boolean.FALSE;
     }
 
@@ -36,9 +36,10 @@ public class Sender extends Thread {
                     Elements category = shopParser.parseCategory(link);
                     for (Element element : category) {
                         if (!running) break;
-                        Product parsedProduct = shopParser.parseProduct(element);
+
+                        Product parsedProduct = shopParser.parseProduct(element, databaseManager.getAllIgnoredBrands());
                         if (parsedProduct == null) continue;
-                        Product savedProduct = databaseManager.getExistingEntityByUrl(parsedProduct.getUrl());
+                        Product savedProduct = databaseManager.getExistingProductByUrl(parsedProduct.getUrl());
                         if (savedProduct == null) {
                             saveProduct(parsedProduct);
                         } else {
@@ -92,5 +93,9 @@ public class Sender extends Thread {
 
     public synchronized void setRunning(Boolean running) {
         this.running = running;
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
     }
 }

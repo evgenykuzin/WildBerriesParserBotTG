@@ -1,5 +1,8 @@
 package bot;
 
+import commands.Command;
+import commands.CommandManager;
+import database.DatabaseManager;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -16,7 +19,9 @@ public class Bot extends TelegramLongPollingBot {
     private long chatId = 443215848;
     private ShopParser shopParser;
     private Sender sender;
-    private long testChatId = 328018558; //убрать!
+    private CommandManager commandManager;
+    private DatabaseManager databaseManager;
+    public static final long testChatId = 328018558; //убрать!
 
     public Bot() {
         this(false);
@@ -26,11 +31,12 @@ public class Bot extends TelegramLongPollingBot {
         if (!withoutProps) {
             loadProps();
         }
+        commandManager = new CommandManager(this);
         System.out.println("run!");
     }
 
     private void loadProps() {
-        Properties botProps = PropertiesManager.getProperties("testbot");
+        Properties botProps = PropertiesManager.getProperties("testbot"); //заменить на bot!
         botName = botProps.getProperty("bot.name");
         botToken = botProps.getProperty("bot.token");
         //chatId = Long.parseLong(botProps.getProperty("bot.chat_id")); //вернуть назад!
@@ -39,12 +45,14 @@ public class Bot extends TelegramLongPollingBot {
     private void onText(Message message) {
         if (message.hasText()) {
             String text = message.getText();
-            if (text.equals("/start")) {
-                sendText("wait a few seconds...");
-                sender.setRunning(Boolean.TRUE);
-            } else if (text.equals("/stop")) {
-                sendText("stopping...");
-                sender.setRunning(Boolean.FALSE);
+            for (Command command : commandManager.getCommands()) {
+                if (text.contains("/"+command.getName())) {
+                    try {
+                        execute(command.action(message));
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }
@@ -52,17 +60,13 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         Message message = update.getMessage();
-        //chatId = message.getChatId();  //вернуть назад?
         System.out.println("chatId = " + chatId);
         System.out.println(message.getText());
         onText(message);
     }
 
     public synchronized void sendTextToUser(long chatId, String s) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.enableMarkdown(true);
-        sendMessage.setChatId(chatId);
-        sendMessage.setText(s);
+        SendMessage sendMessage = constructSendMessage(chatId, s);
         try {
             execute(sendMessage);
         } catch (TelegramApiException e) {
@@ -86,8 +90,12 @@ public class Bot extends TelegramLongPollingBot {
         sendTextToUser(testChatId, text);
     }
 
-    public synchronized void sendPhoto(String photo) {
-        sendPhotoToUser(chatId, photo);
+    public SendMessage constructSendMessage(long chatId, String text) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.enableMarkdown(true);
+        sendMessage.setChatId(chatId);
+        sendMessage.setText(text);
+        return sendMessage;
     }
 
     public ShopParser getShopParser() {
@@ -106,8 +114,14 @@ public class Bot extends TelegramLongPollingBot {
         return sender;
     }
 
-    public void setSender(Sender sender) {
+    public void init(Sender sender) {
         this.sender = sender;
+        sender.setRunning(Boolean.TRUE);
+        databaseManager = sender.getDatabaseManager();
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
     }
 
     @Override

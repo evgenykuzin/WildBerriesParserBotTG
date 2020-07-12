@@ -2,8 +2,11 @@ package database;
 
 import entities.Product;
 import properties.PropertiesManager;
+
 import java.sql.*;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 public class DatabaseManager {
     private Connection connection;
@@ -38,7 +41,7 @@ public class DatabaseManager {
         pass = dbProps.getProperty("db.password");
     }
 
-    public Product getExistingEntityByUrl(String url) {
+    public Product getExistingProductByUrl(String url) {
         Product product = null;
         try {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM products WHERE url = ?");
@@ -94,4 +97,66 @@ public class DatabaseManager {
             throwables.printStackTrace();
         }
     }
+
+    public Set<String> getAllIgnoredBrands() {
+        return getAll("ignored_brands", "brand");
+    }
+
+    public void saveIgnoredBrand(String brand) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO ignore_brands (brand) value ?");
+            ps.setString(1, brand);
+            ps.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void removeIgnoredBrand(String brand) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("DELETE FROM ignore_brands WHERE brand = ?");
+            ps.setString(1, brand);
+            ps.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public Set<String> getAllCategories() {
+        return getAll("categories", "url");
+    }
+
+    public void saveCategory(String url) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO categories (url) value ?");
+            ps.setString(1, url);
+            ps.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void removeCategory(String url) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("DELETE FROM categories WHERE url = ?");
+            ps.setString(1, url);
+            ps.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    private Set<String> getAll(String table, String column) {
+        Set<String> linksSet = new HashSet<>();
+        try {
+            ResultSet resultSet = connection.prepareStatement("SELECT " + column + " FROM " + table).executeQuery();
+            while (resultSet.next()) {
+                linksSet.add(resultSet.getString(column));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return linksSet;
+    }
+
 }

@@ -1,5 +1,6 @@
 import bot.Bot;
 import bot.Sender;
+import database.DatabaseManager;
 import entities.Product;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -15,16 +16,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class App {
-    private static Queue<Product> productQueue;
-    private static Set<String> linksSet;
-
     public static void main(String[] args) throws IOException {
-        initCollections();
+        DatabaseManager databaseManager = new DatabaseManager();
+        Set<String> linksSet = databaseManager.getAllCategories();
         ShopParser shopParser = new ShopParser();
         Bot bot = initBot();
-        Sender sender = new Sender(bot, shopParser, linksSet);
-        sender.interrupt();
-        bot.setSender(sender);
+        Sender sender = new Sender(bot, shopParser, linksSet, databaseManager);
+        bot.init(sender);
         sender.start();
     }
 
@@ -40,11 +38,4 @@ public class App {
         return bot;
     }
 
-    private static void initCollections() throws IOException {
-        productQueue = new ConcurrentLinkedQueue<>();
-        linksSet = new HashSet<>();
-        String filePath = new File("").getAbsolutePath() + "/src/main/resources/files/categoryLinks.txt";
-        linksSet.addAll(Files.readAllLines(new File(filePath).toPath()));
-
-    }
 }
