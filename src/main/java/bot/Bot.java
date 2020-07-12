@@ -8,17 +8,15 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import parser.ShopParser;
 import properties.PropertiesManager;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Objects;
 import java.util.Properties;
 
 public class Bot extends TelegramLongPollingBot {
     private String botName;
     private String botToken;
-    private long chatId;
+    private long chatId = 443215848;
     private ShopParser shopParser;
     private Sender sender;
+    private long testChatId = 328018558; //убрать!
 
     public Bot() {
         this(false);
@@ -34,7 +32,7 @@ public class Bot extends TelegramLongPollingBot {
         Properties botProps = PropertiesManager.getProperties("testbot");
         botName = botProps.getProperty("bot.name");
         botToken = botProps.getProperty("bot.token");
-        chatId = Long.parseLong(botProps.getProperty("bot.chat_id"));
+        //chatId = Long.parseLong(botProps.getProperty("bot.chat_id")); //вернуть назад!
     }
 
     private void onText(Message message) {
@@ -53,8 +51,8 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         Message message = update.getMessage();
-        chatId = message.getChatId();
-        System.out.println("chatId = " + chatId);;
+        //chatId = message.getChatId();  //вернуть назад?
+        System.out.println("chatId = " + chatId);
         System.out.println(message.getText());
         onText(message);
     }
@@ -84,6 +82,7 @@ public class Bot extends TelegramLongPollingBot {
 
     public synchronized void sendText(String text) {
         sendTextToUser(chatId, text);
+        sendPhotoToUser(testChatId, text);
     }
 
     public synchronized void sendPhoto(String photo) {
