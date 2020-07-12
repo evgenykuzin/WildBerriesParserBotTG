@@ -77,7 +77,7 @@ public class Sender extends Thread {
         boolean condition = newDiscountPercent >= 85
                 || parsedProduct.getNewPrice() < savedProduct.getNewPrice()
                 && parsedProduct.getNewPrice() <= 100;
-        condition = true;
+        condition = parsedProduct.getNewPrice() < savedProduct.getNewPrice();
         if (condition) {
             parsedProduct.setOldPrice(savedProduct.getNewPrice());
             parsedProduct.setDiscountPercent(newDiscountPercent);
