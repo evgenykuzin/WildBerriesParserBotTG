@@ -63,10 +63,10 @@ public class Sender extends Thread {
     }
 
     private void saveProduct(Product product) {
-        if (
-                //product.getNewPrice() <= 100||
-             product.getDiscountPercent() >= 85
-        ) {
+        boolean condition = product.getNewPrice() <= 100 ||
+                product.getDiscountPercent() >= 85;
+        condition = true;
+        if (condition) {
             bot.sendText(product.constructMessage());
             databaseManager.saveProduct(product);
         }
@@ -74,11 +74,11 @@ public class Sender extends Thread {
 
     public void compareAndUpdateProducts(Product parsedProduct, Product savedProduct) {
         double newDiscountPercent = 100 - (parsedProduct.getNewPrice() * 100 / savedProduct.getNewPrice());
-        if (
-                newDiscountPercent >= 85
-                        //|| parsedProduct.getNewPrice() < savedProduct.getNewPrice()
-                        //&& parsedProduct.getNewPrice() <= 100
-        ) {
+        boolean condition = newDiscountPercent >= 85
+                || parsedProduct.getNewPrice() < savedProduct.getNewPrice()
+                && parsedProduct.getNewPrice() <= 100;
+        condition = true;
+        if (condition) {
             parsedProduct.setOldPrice(savedProduct.getNewPrice());
             parsedProduct.setDiscountPercent(newDiscountPercent);
             databaseManager.updateProduct(parsedProduct);

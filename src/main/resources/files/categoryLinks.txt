@@ -177,3 +177,5 @@ https://www.wildberries.ru/catalog/yuvelirnye-ukrasheniya/chasy?price=1;300
 https://www.wildberries.ru/catalog/yuvelirnye-ukrasheniya/sergi?price=1;100
 https://www.wildberries.ru/catalog/podarki/zhenshchinam?price=1;50
 https://www.wildberries.ru/catalog/podarki/muzhchinam?price=1;50
+https://www.wildberries.ru/catalog/zdorove/antibakterialnye-i-antisepticheskie-preparaty/dezinfitsiruyushchie-sredstva?price=1;65
+https://www.wildberries.ru/catalog/detyam/odezhda/dlya-malchikov?price=1;79

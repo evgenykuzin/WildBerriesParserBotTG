@@ -2,7 +2,6 @@ package parser;
 
 import bot.Bot;
 import com.google.common.base.CharMatcher;
-import entities.Category;
 import entities.Product;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -60,7 +59,6 @@ public class ShopParser {
         double discountPercent = getDouble(dp);
         double oldPrice = getDouble(op);
         if (newPrice == -1 || oldPrice == -1 || discountPercent == -1) return null;
-        //if (discountPercent < 40.0 && newPrice >= 100) return null;
         String url = element.getElementsByClass("ref_goods_n_p j-open-full-product-card").attr("href");
         product = new Product(url);
         product.setProductName(productName);
