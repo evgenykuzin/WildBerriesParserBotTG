@@ -82,7 +82,7 @@ public class Bot extends TelegramLongPollingBot {
 
     public synchronized void sendText(String text) {
         sendTextToUser(chatId, text);
-        sendPhotoToUser(testChatId, text);
+        sendTextToUser(testChatId, text);
     }
 
     public synchronized void sendPhoto(String photo) {
