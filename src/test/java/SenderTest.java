@@ -13,7 +13,7 @@ import java.util.Set;
 public class SenderTest {
     @Test
     public void testUpdate() throws IOException {
-        Bot bot = new Bot(true);
+        Bot bot = new Bot(new DatabaseManager(), true);
         ShopParser shopParser = new ShopParser();
         Set<String> linksSet = new HashSet<>();
         Sender sender = new Sender(bot, shopParser, linksSet, new DatabaseManager());

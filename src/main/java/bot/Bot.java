@@ -4,13 +4,17 @@ import commands.Command;
 import commands.CommandManager;
 import database.DatabaseManager;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import parser.ShopParser;
 import properties.PropertiesManager;
 
+import java.io.Serializable;
 import java.util.Properties;
 
 public class Bot extends TelegramLongPollingBot {
@@ -23,15 +27,16 @@ public class Bot extends TelegramLongPollingBot {
     private DatabaseManager databaseManager;
     public static final long testChatId = 328018558; //убрать!
 
-    public Bot() {
-        this(false);
+    public Bot(DatabaseManager databaseManager) {
+        this(databaseManager, false);
     }
 
-    public Bot(boolean withoutProps) {
+    public Bot(DatabaseManager databaseManager, boolean withoutProps) {
         if (!withoutProps) {
             loadProps();
         }
-        commandManager = new CommandManager(this);
+        this.databaseManager = databaseManager;
+        commandManager = new CommandManager(this, databaseManager);
         System.out.println("run!");
     }
 
@@ -45,6 +50,13 @@ public class Bot extends TelegramLongPollingBot {
     private void onText(Message message) {
         if (message.hasText()) {
             String text = message.getText();
+            if (text.equals("/start")) {
+                sendText("start parsing...");
+                sender.setRunning(Boolean.TRUE);
+            } else if (text.equals("/stop")) {
+                sendText("stopping...");
+                sender.setRunning(Boolean.FALSE);
+            }
             for (Command command : commandManager.getCommands()) {
                 if (text.contains("/"+command.getName())) {
                     try {
@@ -60,7 +72,7 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         Message message = update.getMessage();
-        System.out.println("chatId = " + chatId);
+        System.out.println("chatId = " + update.getMessage().getChatId());
         System.out.println(message.getText());
         onText(message);
     }
@@ -114,10 +126,8 @@ public class Bot extends TelegramLongPollingBot {
         return sender;
     }
 
-    public void init(Sender sender) {
+    public void setSender(Sender sender) {
         this.sender = sender;
-        sender.setRunning(Boolean.TRUE);
-        databaseManager = sender.getDatabaseManager();
     }
 
     public DatabaseManager getDatabaseManager() {

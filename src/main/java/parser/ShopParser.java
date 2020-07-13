@@ -26,7 +26,7 @@ public class ShopParser {
     public Elements parseCategory(String link) {
         Document doc;
         try {
-            doc = Jsoup.parse(new URL(link), 1000);
+            doc = Jsoup.parse(new URL(link), 0);
             return doc.getElementsByClass("dtList-inner");
         } catch (IOException e) {
             e.printStackTrace();

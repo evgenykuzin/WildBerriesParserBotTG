@@ -9,7 +9,7 @@ import java.util.Properties;
 import java.util.Set;
 
 public class DatabaseManager {
-    private Connection connection;
+    private final Connection connection;
     private String url;
     private String name;
     private String pass;
@@ -17,6 +17,10 @@ public class DatabaseManager {
     public DatabaseManager() {
         loadProps();
         connection = initConnection(url, name, pass);
+    }
+
+    public DatabaseManager(Connection connection) {
+        this.connection = connection;
     }
 
     private Connection initConnection(String url, String name, String pass) {
@@ -48,17 +52,7 @@ public class DatabaseManager {
             ps.setString(1, url);
             ResultSet resultSet = ps.executeQuery();
             while (resultSet.next()) {
-                String productName = resultSet.getString("product_name");
-                String brandName = resultSet.getString("brand_name");
-                double oldPrice = Double.parseDouble(resultSet.getString("old_price"));
-                double currentPrice = Double.parseDouble(resultSet.getString("current_price"));
-                double discountPercent = Double.parseDouble(resultSet.getString("discount_percent"));
-                product = new Product(url);
-                product.setProductName(productName);
-                product.setBrandName(brandName);
-                product.setNewPrice(currentPrice);
-                product.setOldPrice(oldPrice);
-                product.setDiscountPercent(discountPercent);
+                product = constructProduct(resultSet);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -68,13 +62,16 @@ public class DatabaseManager {
 
     public void saveProduct(Product product) {
         try {
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO products (url, product_name, brand_name, current_price, old_price, discount_percent) values (?,?,?,?,?,?)");
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO products (url, product_name, brand_name, current_price, old_price, discount_percent) values (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE products.current_price = ?, products.old_price = ?, products.discount_percent = ?");
             ps.setString(1, product.getUrl());
             ps.setString(2, product.getProductName());
             ps.setString(3, product.getBrandName());
             ps.setString(4, String.valueOf(product.getNewPrice()));
             ps.setString(5, String.valueOf(product.getOldPrice()));
             ps.setString(6, String.valueOf(product.getDiscountPercent()));
+            ps.setString(7, String.valueOf(product.getNewPrice()));
+            ps.setString(8, String.valueOf(product.getOldPrice()));
+            ps.setString(9, String.valueOf(product.getDiscountPercent()));
             ps.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -88,9 +85,9 @@ public class DatabaseManager {
                     "old_price = ?," +
                     "discount_percent = ?" +
                     "WHERE url = ?");
-            ps.setString(1, String.valueOf(product.getNewPrice()));
-            ps.setString(2, String.valueOf(product.getOldPrice()));
-            ps.setString(3, String.valueOf(product.getDiscountPercent()));
+            ps.setDouble(1, product.getNewPrice());
+            ps.setDouble(2, product.getOldPrice());
+            ps.setDouble(3, product.getDiscountPercent());
             ps.setString(4, product.getUrl());
             ps.executeUpdate();
         } catch (SQLException throwables) {
@@ -98,13 +95,42 @@ public class DatabaseManager {
         }
     }
 
+    public Set<Product> getAllProducts() {
+        Set<Product> set = new HashSet<>();
+        try {
+            ResultSet resultSet = connection.prepareStatement("SELECT * FROM products").executeQuery();
+            while (resultSet.next()) {
+                set.add(constructProduct(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return set;
+    }
+
+    private Product constructProduct(ResultSet resultSet) throws SQLException{
+        String url = resultSet.getString("url");
+        String productName = resultSet.getString("product_name");
+        String brandName = resultSet.getString("brand_name");
+        double oldPrice = resultSet.getDouble("old_price");
+        double currentPrice = resultSet.getDouble("current_price");
+        double discountPercent = resultSet.getDouble("discount_percent");
+        Product product = new Product(url);
+        product.setProductName(productName);
+        product.setBrandName(brandName);
+        product.setNewPrice(currentPrice);
+        product.setOldPrice(oldPrice);
+        product.setDiscountPercent(discountPercent);
+        return product;
+    }
+
     public Set<String> getAllIgnoredBrands() {
-        return getAll("ignored_brands", "brand");
+        return getAll("ignore_brands", "brand");
     }
 
     public void saveIgnoredBrand(String brand) {
         try {
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO ignore_brands (brand) value ?");
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO ignore_brands (brand) values(?)");
             ps.setString(1, brand);
             ps.executeUpdate();
         } catch (SQLException throwables) {
@@ -128,7 +154,7 @@ public class DatabaseManager {
 
     public void saveCategory(String url) {
         try {
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO categories (url) value ?");
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO categories (url) values(?)");
             ps.setString(1, url);
             ps.executeUpdate();
         } catch (SQLException throwables) {
@@ -147,16 +173,16 @@ public class DatabaseManager {
     }
 
     private Set<String> getAll(String table, String column) {
-        Set<String> linksSet = new HashSet<>();
+        Set<String> set = new HashSet<>();
         try {
             ResultSet resultSet = connection.prepareStatement("SELECT " + column + " FROM " + table).executeQuery();
             while (resultSet.next()) {
-                linksSet.add(resultSet.getString(column));
+                set.add(resultSet.getString(column));
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-        return linksSet;
+        return set;
     }
 
 }

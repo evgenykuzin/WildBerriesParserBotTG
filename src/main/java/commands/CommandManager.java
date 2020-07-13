@@ -2,10 +2,18 @@ package commands;
 
 import bot.Bot;
 import database.DatabaseManager;
+import org.jetbrains.annotations.NotNull;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.sql.SQLException;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Set;
 
 public class CommandManager {
@@ -15,121 +23,121 @@ public class CommandManager {
     private DatabaseManager databaseManager;
     public final static String HELP_TEXT = "i am not useless!";
 
-    public CommandManager(Bot bot) {
+    public CommandManager(Bot bot, DatabaseManager databaseManager) {
         this.bot = bot;
-        databaseManager = bot.getDatabaseManager();
+        this.databaseManager = databaseManager;
         commands = new ArrayList<>();
         buttons = new Buttons();
         buttons.createUserKeyboard(this);
 
         addCommand(new Command("help", HELP_TEXT));
 
-        addCommand(new Command("start", message -> {
-            bot.getSender().setRunning(Boolean.TRUE);
-            return sendMessage("start parsing...");
-        }));
-
-        addCommand(new Command("stop", message -> {
-            bot.getSender().setRunning(Boolean.FALSE);
-            return sendMessage("stopping...");
-        }));
-
-        Command seenCmd = new Command("/seen");
+        Command seenCmd = new Command("seen");
         seenCmd.setAction(message -> {
             if (message.hasText()) {
                 String productUrl = message.getText().replace(seenCmd.getName(), "");
                 //TODO
             }
-            return sendMessage("uhh...don't know...");
+            return sendMessage("uhh...don't know...", message.getChatId());
         });
         addCommand(seenCmd);
 
-        Command catListCmd = new Command("/cat_list");
+        Command catListCmd = new Command("cat_list");
         catListCmd.setAction(message -> {
             Set<String> categories = databaseManager.getAllCategories();
             if (categories == null || categories.isEmpty()) {
-                return sendMessage("categories is empty(");
+                return sendMessage("categories is empty(", message.getChatId());
             }
-            StringBuilder sb = new StringBuilder();
-            categories.forEach(c -> sb.append(c).append("\n"));
-            return sendMessage(sb.toString());
+            try {
+                bot.execute(sendDocument(categories, "categories", message.getChatId()));
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+            return new VoidMethod();
         });
         addCommand(catListCmd);
 
-        Command catAddCmd = new Command("/cat_add");
+        Command catAddCmd = new Command("cat_add");
         catAddCmd.setAction(message -> {
-            String[] categories = message.getText().replace(catAddCmd.getName(), "").split(" ");
-            if (categories.length == 0)
-                return sendMessage("please, enter a urls of categories you need. Split by spaces.");
+            String[] categories = message.getText().replace(catAddCmd.getName(), "").replaceAll("[\\s\n,]", ",").split(",");
+            if (categories.length == 0) {
+                return sendMessage("please, enter a urls of categories you need. Split by spaces.", message.getChatId());
+            }
+            Set<String> existing = databaseManager.getAllCategories();
             for (String url : categories) {
+                if (!url.contains("http")) continue;
+                if(existing.contains(url)) continue;
                 databaseManager.saveCategory(url);
             }
-            return sendMessage("categories saved!");
+            return sendMessage("categories saved!", message.getChatId());
         });
         addCommand(catAddCmd);
 
-        Command catRmCmd = new Command("/cat_rm");
+        Command catRmCmd = new Command("cat_rm");
         catRmCmd.setAction(message -> {
-            String[] categories = message.getText().replace(catRmCmd.getName(), "").split(" ");
+            String[] categories = message.getText().replace(catRmCmd.getName(), "").replaceAll("[\\s\n,]", ",").split(",");
             if (categories.length == 0)
-                return sendMessage("please, enter a urls of categories you need. Split by spaces.");
+                return sendMessage("please, enter a urls of categories you need. Split by spaces.", message.getChatId());
             for (String url : categories) {
                 databaseManager.removeCategory(url);
             }
-            return sendMessage("categories removed!");
+            return sendMessage("categories removed!", message.getChatId());
         });
         addCommand(catRmCmd);
 
-        Command igListCmd = new Command("/ig_list");
+        Command igListCmd = new Command("ig_list");
         igListCmd.setAction(message -> {
             Set<String> ignoredBrands = databaseManager.getAllIgnoredBrands();
             if (ignoredBrands == null || ignoredBrands.isEmpty()) {
-                return sendMessage("ignored brands list is empty(");
+                return sendMessage("ignored brands list is empty(", message.getChatId());
             }
             StringBuilder sb = new StringBuilder();
             ignoredBrands.forEach(c -> sb.append(c).append("\n"));
-            return sendMessage(sb.toString());
+            return sendMessage(sb.toString(), message.getChatId());
         });
         addCommand(igListCmd);
 
-        Command igAddCmd = new Command("/ig_add");
+        Command igAddCmd = new Command("ig_add");
         igAddCmd.setAction(message -> {
             String[] split = message.getText().replace(igAddCmd.getName(), "").split("=");
-            String[] ignoredBrands = split[0].split("[\\s,]");
+            String[] ignoredBrands = split[0].replaceAll("[\\s\n,]", ",").split(",");;
             double price = 0.0;
             if (split.length > 1) price = Double.parseDouble(split[1]);
-            if (ignoredBrands.length == 0) return sendMessage("please, enter a brand names you need. Split by spaces.");
+            if (ignoredBrands.length == 0) return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
+            Set<String> existing = databaseManager.getAllIgnoredBrands();
             for (String brand : ignoredBrands) {
+                if (brand.isEmpty() || brand.matches("[\\s\n,]")) continue;
+                if(existing.contains(brand)) continue;
                 databaseManager.saveIgnoredBrand(brand);
             }
-            return sendMessage("brands ignored!");
+            return sendMessage("brands ignored!", message.getChatId());
         });
         addCommand(igAddCmd);
 
-        Command igRmCmd = new Command("/ig_rm");
+        Command igRmCmd = new Command("ig_rm");
         igRmCmd.setAction(message -> {
-            String[] ignoredBrands = message.getText().replace(igRmCmd.getName(), "").split(" ");
-            if (ignoredBrands.length == 0) return sendMessage("please, enter a brand names you need. Split by spaces.");
+            String[] ignoredBrands = message.getText().replace(igRmCmd.getName(), "").replaceAll("[\\s\n,]", ",").split(",");
+            if (ignoredBrands.length == 0) return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
             for (String brand : ignoredBrands) {
                 databaseManager.removeIgnoredBrand(brand);
             }
-            return sendMessage("brands not ignored anymore!");
+            return sendMessage("brands not ignored anymore!", message.getChatId());
         });
         addCommand(igRmCmd);
 
-        Command preloadCmd = new Command("/preload");
+        Command preloadCmd = new Command("preload");
         preloadCmd.setAction(message -> {
 
             //TODO
-            return sendMessage("mmm...what??");
+            return sendMessage("mmm...what??", message.getChatId());
         });
         addCommand(preloadCmd);
 
-        Command configCmd = new Command("/config");
+        Command configCmd = new Command("config");
         configCmd.setAction(message -> {
 
             //TODO
-            return sendMessage("aaa... config?"); //заменить на bot.getChatId;
+            return sendMessage("aaa... config?", message.getChatId()); //заменить на bot.getChatId;
         });
         addCommand(configCmd);
     }
@@ -158,8 +166,27 @@ public class CommandManager {
         return null;
     }
 
-    private SendMessage sendMessage(String text) {
-        return bot.constructSendMessage(bot.testChatId, text); //заменить на bot.getChatId()
+    private SendMessage sendMessage(String text, long chatId) {
+        return bot.constructSendMessage(chatId, text); //заменить на bot.getChatId()
+    }
+
+    private SendDocument sendDocument(Iterable<? extends CharSequence> content, String fileName, long chatId) {
+        File file = null;
+        try {
+            file = constructPath(content, fileName).toFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        SendDocument sendDocument = new SendDocument();
+        sendDocument.setChatId(chatId);
+        sendDocument.setDocument(file);
+        return sendDocument;
+    }
+
+    public Path constructPath(Iterable<? extends CharSequence> content, String fileName) throws IOException{
+        Path path = Files.createTempFile(fileName, ".txt");
+        Files.write(path, content);
+        return path;
     }
 
 }

@@ -11,32 +11,36 @@ import java.util.Set;
 public class Sender extends Thread {
     private final Bot bot;
     private final ShopParser shopParser;
-    private final Set<String> linksSet;
+    private final Set<String> categories;
     private final DatabaseManager databaseManager;
     private volatile Boolean running;
     private volatile long lastCall = 0;
 
-    public Sender(Bot bot, ShopParser shopParser, Set<String> linksSet, DatabaseManager databaseManager) {
+    public Sender(Bot bot, ShopParser shopParser, Set<String> categories, DatabaseManager databaseManager) {
         this.bot = bot;
         this.shopParser = shopParser;
-        this.linksSet = linksSet;
+        this.categories = categories;
         this.databaseManager = databaseManager;
-        running = Boolean.FALSE;
+        running = Boolean.TRUE;
     }
 
     @Override
     public void run() {
+        bot.sendText("start parsing...");
         while (true) {
             if (running) {
-                for (String link : linksSet) {
+                if (categories.isEmpty()) {
+                    bot.sendText("categories is empty(");
+                    running = Boolean.FALSE;
+                }
+                for (String url : categories) {
                     if (!running) {
                         bot.sendText("stopped!");
                         break;
                     }
-                    Elements category = shopParser.parseCategory(link);
+                    Elements category = shopParser.parseCategory(url);
                     for (Element element : category) {
                         if (!running) break;
-
                         Product parsedProduct = shopParser.parseProduct(element, databaseManager.getAllIgnoredBrands());
                         if (parsedProduct == null) continue;
                         Product savedProduct = databaseManager.getExistingProductByUrl(parsedProduct.getUrl());
