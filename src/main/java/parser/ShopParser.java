@@ -1,25 +1,21 @@
 package parser;
 
-import bot.Bot;
 import com.google.common.base.CharMatcher;
+import context.Context;
 import entities.Product;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Queue;
 import java.util.Set;
 
 public class ShopParser {
     Set<String> linksSet;
-    Bot bot;
-
-    public ShopParser(Set<String> linksSet) {
-        this.linksSet = linksSet;
-    }
 
     public ShopParser(){}
 
@@ -28,6 +24,8 @@ public class ShopParser {
         try {
             doc = Jsoup.parse(new URL(link), 0);
             return doc.getElementsByClass("dtList-inner");
+        } catch (HttpStatusException hse) {
+            Context.bot.sendText("error parsing url: " + hse.getUrl());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -64,14 +62,6 @@ public class ShopParser {
         }
     }
 
-    public Bot getBot() {
-        return bot;
-    }
-
-    public void setBot(Bot bot) {
-        this.bot = bot;
-    }
-
     public Set<String> getLinksSet() {
         return linksSet;
     }
@@ -80,7 +70,4 @@ public class ShopParser {
         this.linksSet = linksSet;
     }
 
-    private void sendMessage(String message) {
-        bot.sendText(message);
-    }
 }

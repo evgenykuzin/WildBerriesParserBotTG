@@ -27,6 +27,7 @@ public class Sender extends Thread {
 
     @Override
     public void run() throws OutOfMemoryError, ConnectionIsClosedException {
+        System.out.println("restarted");
         bot.sendText("restarted");
         while (true) {
             if (running) {
@@ -34,6 +35,8 @@ public class Sender extends Thread {
                     System.out.println("categories is empty(");
                     bot.sendText("categories is empty(");
                     running = Boolean.FALSE;
+                    bot.sendText("stopping parsing");
+                    continue;
                 }
                 for (String url : categories) {
                     if (!running) {
