@@ -1,6 +1,5 @@
 package database;
 
-import com.mysql.cj.exceptions.ConnectionIsClosedException;
 import context.Context;
 import entities.Product;
 import properties.PropertiesManager;
@@ -56,7 +55,15 @@ public class DatabaseManager {
             while (resultSet.next()) {
                 product = constructProduct(resultSet);
             }
-        } catch (SQLException e) {
+        }
+        catch (SQLSyntaxErrorException ssee) {
+            ssee.printStackTrace();
+            if (ssee.getMessage().contains("max_questions")) {
+                System.out.println("waiting database...");
+                Context.restartSender(1800000);
+            }
+        }
+        catch (SQLException e) {
             e.printStackTrace();
         }
         return product;
@@ -75,9 +82,11 @@ public class DatabaseManager {
             ps.setString(8, String.valueOf(product.getOldPrice()));
             ps.setString(9, String.valueOf(product.getDiscountPercent()));
             ps.executeUpdate();
-        }catch (SQLSyntaxErrorException ssee) {
+        }
+        catch (SQLSyntaxErrorException ssee) {
             ssee.printStackTrace();
             if (ssee.getMessage().contains("max_questions")) {
+                System.out.println("waiting database...");
                 Context.restartSender(1800000);
             }
         }
@@ -98,7 +107,15 @@ public class DatabaseManager {
             ps.setDouble(3, product.getDiscountPercent());
             ps.setString(4, product.getUrl());
             ps.executeUpdate();
-        } catch (SQLException throwables) {
+        }
+        catch (SQLSyntaxErrorException ssee) {
+            ssee.printStackTrace();
+            if (ssee.getMessage().contains("max_questions")) {
+                System.out.println("waiting database...");
+                Context.restartSender(1800000);
+            }
+        }
+        catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
@@ -110,7 +127,15 @@ public class DatabaseManager {
             while (resultSet.next()) {
                 set.add(constructProduct(resultSet));
             }
-        } catch (SQLException throwables) {
+        }
+        catch (SQLSyntaxErrorException ssee) {
+            ssee.printStackTrace();
+            if (ssee.getMessage().contains("max_questions")) {
+                System.out.println("waiting database...");
+                Context.restartSender(1800000);
+            }
+        }
+        catch (SQLException throwables) {
             throwables.printStackTrace();
         }
         return set;
@@ -141,7 +166,15 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO ignore_brands (brand) values(?)");
             ps.setString(1, brand);
             ps.executeUpdate();
-        } catch (SQLException throwables) {
+        }
+        catch (SQLSyntaxErrorException ssee) {
+            ssee.printStackTrace();
+            if (ssee.getMessage().contains("max_questions")) {
+                System.out.println("waiting database...");
+                Context.restartSender(1800000);
+            }
+        }
+        catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
@@ -151,7 +184,15 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("DELETE FROM ignore_brands WHERE brand = ?");
             ps.setString(1, brand);
             ps.executeUpdate();
-        } catch (SQLException throwables) {
+        }
+        catch (SQLSyntaxErrorException ssee) {
+            ssee.printStackTrace();
+            if (ssee.getMessage().contains("max_questions")) {
+                System.out.println("waiting database...");
+                Context.restartSender(1800000);
+            }
+        }
+        catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
@@ -165,7 +206,15 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO categories (url) values(?)");
             ps.setString(1, url);
             ps.executeUpdate();
-        } catch (SQLException throwables) {
+        }
+        catch (SQLSyntaxErrorException ssee) {
+            ssee.printStackTrace();
+            if (ssee.getMessage().contains("max_questions")) {
+                System.out.println("waiting database...");
+                Context.restartSender(1800000);
+            }
+        }
+        catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
@@ -175,7 +224,15 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("DELETE FROM categories WHERE url = ?");
             ps.setString(1, url);
             ps.executeUpdate();
-        } catch (SQLException throwables) {
+        }
+        catch (SQLSyntaxErrorException ssee) {
+            ssee.printStackTrace();
+            if (ssee.getMessage().contains("max_questions")) {
+                System.out.println("waiting database...");
+                Context.restartSender(1800000);
+            }
+        }
+        catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
@@ -187,14 +244,16 @@ public class DatabaseManager {
             while (resultSet.next()) {
                 set.add(resultSet.getString(column));
             }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        } catch (ConnectionIsClosedException cice) {
-            try {
-                Thread.sleep(60000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        }
+        catch (SQLSyntaxErrorException ssee) {
+            ssee.printStackTrace();
+            if (ssee.getMessage().contains("max_questions")) {
+                System.out.println("waiting database...");
+                Context.restartSender(1800000);
             }
+        }
+        catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
         return set;
     }
