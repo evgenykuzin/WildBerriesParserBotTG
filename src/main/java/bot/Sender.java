@@ -1,5 +1,6 @@
 package bot;
 
+import com.mysql.cj.exceptions.ConnectionIsClosedException;
 import database.DatabaseManager;
 import entities.Product;
 import org.jsoup.nodes.Element;
@@ -25,7 +26,7 @@ public class Sender extends Thread {
     }
 
     @Override
-    public void run() {
+    public void run() throws OutOfMemoryError, ConnectionIsClosedException {
         bot.sendText("start parsing...");
         while (true) {
             if (running) {
