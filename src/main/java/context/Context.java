@@ -9,6 +9,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import parser.ShopParser;
 
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Context {
     public static DatabaseManager databaseManager = databaseManager();
@@ -16,6 +19,7 @@ public class Context {
     public static ShopParser shopParser = shopParser();
     public static Bot bot = bot(databaseManager);
     public static Sender sender = sender(bot, shopParser, linksSet, databaseManager);
+    public static ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private static DatabaseManager databaseManager() {
         return new DatabaseManager();
@@ -33,19 +37,20 @@ public class Context {
         return new Sender(bot, shopParser, linksSet, databaseManager);
     }
 
-    public static void startSender() throws InterruptedException {
+    public static void startSender() {
         try {
             sender.run();
-        } catch (Throwable throwable) {
+        } catch (OutOfMemoryError throwable) {
+            System.out.println("out of memory");
+            restartSender(30000);
             throwable.printStackTrace();
-            restartSender(60000);
         }
     }
 
     public static void restartSender(long time) {
         try {
-            sender.interrupt();
             System.out.println("restarting thread Sender");
+            sender.interrupt();
             Thread.sleep(time);
             startSender();
             System.out.println("thread Sender restarted");

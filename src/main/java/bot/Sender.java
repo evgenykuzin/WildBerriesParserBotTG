@@ -7,7 +7,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import parser.ShopParser;
 
-import java.sql.SQLSyntaxErrorException;
 import java.util.Set;
 
 public class Sender extends Thread {
@@ -29,15 +28,16 @@ public class Sender extends Thread {
     @Override
     public void run() throws OutOfMemoryError, ConnectionIsClosedException {
         bot.sendText("restarted");
-        Set<Product> existingProducts = databaseManager.getAllProducts();
         while (true) {
             if (running) {
                 if (categories.isEmpty()) {
+                    System.out.println("categories is empty(");
                     bot.sendText("categories is empty(");
                     running = Boolean.FALSE;
                 }
                 for (String url : categories) {
                     if (!running) {
+                        System.out.println("sender stopped");
                         bot.sendText("stopped!");
                         break;
                     }
@@ -105,4 +105,5 @@ public class Sender extends Thread {
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
     }
+
 }

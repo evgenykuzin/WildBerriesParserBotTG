@@ -14,6 +14,7 @@ public class DatabaseManager {
     private String url;
     private String name;
     private String pass;
+    private static final long reconnectingDBTime = 1800000;
 
     public DatabaseManager() {
         loadProps();
@@ -57,11 +58,7 @@ public class DatabaseManager {
             }
         }
         catch (SQLSyntaxErrorException ssee) {
-            ssee.printStackTrace();
-            if (ssee.getMessage().contains("max_questions")) {
-                System.out.println("waiting database...");
-                Context.restartSender(1800000);
-            }
+            waitingDatabase(ssee);
         }
         catch (SQLException e) {
             e.printStackTrace();
@@ -84,11 +81,7 @@ public class DatabaseManager {
             ps.executeUpdate();
         }
         catch (SQLSyntaxErrorException ssee) {
-            ssee.printStackTrace();
-            if (ssee.getMessage().contains("max_questions")) {
-                System.out.println("waiting database...");
-                Context.restartSender(1800000);
-            }
+            waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -109,11 +102,7 @@ public class DatabaseManager {
             ps.executeUpdate();
         }
         catch (SQLSyntaxErrorException ssee) {
-            ssee.printStackTrace();
-            if (ssee.getMessage().contains("max_questions")) {
-                System.out.println("waiting database...");
-                Context.restartSender(1800000);
-            }
+            waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -129,11 +118,7 @@ public class DatabaseManager {
             }
         }
         catch (SQLSyntaxErrorException ssee) {
-            ssee.printStackTrace();
-            if (ssee.getMessage().contains("max_questions")) {
-                System.out.println("waiting database...");
-                Context.restartSender(1800000);
-            }
+            waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -168,11 +153,7 @@ public class DatabaseManager {
             ps.executeUpdate();
         }
         catch (SQLSyntaxErrorException ssee) {
-            ssee.printStackTrace();
-            if (ssee.getMessage().contains("max_questions")) {
-                System.out.println("waiting database...");
-                Context.restartSender(1800000);
-            }
+            waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -186,11 +167,7 @@ public class DatabaseManager {
             ps.executeUpdate();
         }
         catch (SQLSyntaxErrorException ssee) {
-            ssee.printStackTrace();
-            if (ssee.getMessage().contains("max_questions")) {
-                System.out.println("waiting database...");
-                Context.restartSender(1800000);
-            }
+            waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -208,11 +185,7 @@ public class DatabaseManager {
             ps.executeUpdate();
         }
         catch (SQLSyntaxErrorException ssee) {
-            ssee.printStackTrace();
-            if (ssee.getMessage().contains("max_questions")) {
-                System.out.println("waiting database...");
-                Context.restartSender(1800000);
-            }
+            waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -226,11 +199,7 @@ public class DatabaseManager {
             ps.executeUpdate();
         }
         catch (SQLSyntaxErrorException ssee) {
-            ssee.printStackTrace();
-            if (ssee.getMessage().contains("max_questions")) {
-                System.out.println("waiting database...");
-                Context.restartSender(1800000);
-            }
+            waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -246,16 +215,20 @@ public class DatabaseManager {
             }
         }
         catch (SQLSyntaxErrorException ssee) {
-            ssee.printStackTrace();
-            if (ssee.getMessage().contains("max_questions")) {
-                System.out.println("waiting database...");
-                Context.restartSender(1800000);
-            }
+            waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
             throwables.printStackTrace();
         }
         return set;
+    }
+
+    private void waitingDatabase(SQLSyntaxErrorException ssee) {
+        ssee.printStackTrace();
+        if (ssee.getMessage().contains("max_questions")) {
+            System.out.println("waiting database...");
+            Context.restartSender(reconnectingDBTime);
+        }
     }
 
 }
