@@ -7,6 +7,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import parser.ShopParser;
 
+import java.sql.SQLSyntaxErrorException;
 import java.util.Set;
 
 public class Sender extends Thread {

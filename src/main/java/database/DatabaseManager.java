@@ -1,6 +1,7 @@
 package database;
 
 import com.mysql.cj.exceptions.ConnectionIsClosedException;
+import context.Context;
 import entities.Product;
 import properties.PropertiesManager;
 
@@ -74,7 +75,13 @@ public class DatabaseManager {
             ps.setString(8, String.valueOf(product.getOldPrice()));
             ps.setString(9, String.valueOf(product.getDiscountPercent()));
             ps.executeUpdate();
-        } catch (SQLException throwables) {
+        }catch (SQLSyntaxErrorException ssee) {
+            ssee.printStackTrace();
+            if (ssee.getMessage().contains("max_questions")) {
+                Context.restartSender(1800000);
+            }
+        }
+        catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
