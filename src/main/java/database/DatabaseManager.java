@@ -101,7 +101,7 @@ public class DatabaseManager {
             ps.setString(4, product.getUrl());
             ps.executeUpdate();
         }
-        catch (SQLSyntaxErrorException ssee) {
+        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
@@ -117,7 +117,7 @@ public class DatabaseManager {
                 set.add(constructProduct(resultSet));
             }
         }
-        catch (SQLSyntaxErrorException ssee) {
+        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
@@ -152,7 +152,7 @@ public class DatabaseManager {
             ps.setString(1, brand);
             ps.executeUpdate();
         }
-        catch (SQLSyntaxErrorException ssee) {
+        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
@@ -166,7 +166,7 @@ public class DatabaseManager {
             ps.setString(1, brand);
             ps.executeUpdate();
         }
-        catch (SQLSyntaxErrorException ssee) {
+        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
@@ -184,7 +184,7 @@ public class DatabaseManager {
             ps.setString(1, url);
             ps.executeUpdate();
         }
-        catch (SQLSyntaxErrorException ssee) {
+        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
@@ -198,7 +198,7 @@ public class DatabaseManager {
             ps.setString(1, url);
             ps.executeUpdate();
         }
-        catch (SQLSyntaxErrorException ssee) {
+        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
@@ -214,7 +214,7 @@ public class DatabaseManager {
                 set.add(resultSet.getString(column));
             }
         }
-        catch (SQLSyntaxErrorException ssee) {
+        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
         }
         catch (SQLException throwables) {
@@ -223,9 +223,9 @@ public class DatabaseManager {
         return set;
     }
 
-    private void waitingDatabase(SQLSyntaxErrorException ssee) {
-        ssee.printStackTrace();
-        if (ssee.getMessage().contains("max_questions")) {
+    private void waitingDatabase(Exception e) {
+        e.printStackTrace();
+        if (e.getMessage().contains("max_questions")) {
             System.out.println("waiting database...");
             Context.restartSender(reconnectingDBTime);
         }
