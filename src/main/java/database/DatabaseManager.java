@@ -1,5 +1,6 @@
 package database;
 
+import com.mysql.cj.exceptions.ConnectionIsClosedException;
 import entities.Product;
 import properties.PropertiesManager;
 
@@ -39,7 +40,7 @@ public class DatabaseManager {
     }
 
     private void loadProps() {
-        Properties dbProps = PropertiesManager.getProperties("database");
+        Properties dbProps = PropertiesManager.getProperties("databasetest");
         url = dbProps.getProperty("db.url");
         name = dbProps.getProperty("db.name");
         pass = dbProps.getProperty("db.password");
@@ -181,6 +182,12 @@ public class DatabaseManager {
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } catch (ConnectionIsClosedException cice) {
+            try {
+                Thread.sleep(60000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         return set;
     }

@@ -27,7 +27,8 @@ public class Sender extends Thread {
 
     @Override
     public void run() throws OutOfMemoryError, ConnectionIsClosedException {
-        bot.sendText("start parsing...");
+        bot.sendText("restarted");
+        Set<Product> existingProducts = databaseManager.getAllProducts();
         while (true) {
             if (running) {
                 if (categories.isEmpty()) {

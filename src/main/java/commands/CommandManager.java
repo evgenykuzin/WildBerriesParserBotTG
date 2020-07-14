@@ -59,7 +59,7 @@ public class CommandManager {
 
         Command catAddCmd = new Command("cat_add");
         catAddCmd.setAction(message -> {
-            String[] categories = message.getText().replace(catAddCmd.getName(), "").replaceAll("[\\s\n,]", ",").split(",");
+            String[] categories = getLinesWithoutCommand(message.getText(), catAddCmd.getName());
             if (categories.length == 0) {
                 return sendMessage("please, enter a urls of categories you need. Split by spaces.", message.getChatId());
             }
@@ -75,7 +75,7 @@ public class CommandManager {
 
         Command catRmCmd = new Command("cat_rm");
         catRmCmd.setAction(message -> {
-            String[] categories = message.getText().replace(catRmCmd.getName(), "").replaceAll("[\\s\n,]", ",").split(",");
+            String[] categories = getLinesWithoutCommand(message.getText(), catRmCmd.getName());
             if (categories.length == 0)
                 return sendMessage("please, enter a urls of categories you need. Split by spaces.", message.getChatId());
             for (String url : categories) {
@@ -99,10 +99,7 @@ public class CommandManager {
 
         Command igAddCmd = new Command("ig_add");
         igAddCmd.setAction(message -> {
-            String[] split = message.getText().replace(igAddCmd.getName(), "").split("=");
-            String[] ignoredBrands = split[0].replaceAll("[\\s\n,]", ",").split(",");;
-            double price = 0.0;
-            if (split.length > 1) price = Double.parseDouble(split[1]);
+            String[] ignoredBrands = getLinesWithoutCommand(message.getText(), igAddCmd.getName());
             if (ignoredBrands.length == 0) return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
             Set<String> existing = databaseManager.getAllIgnoredBrands();
             for (String brand : ignoredBrands) {
@@ -116,7 +113,7 @@ public class CommandManager {
 
         Command igRmCmd = new Command("ig_rm");
         igRmCmd.setAction(message -> {
-            String[] ignoredBrands = message.getText().replace(igRmCmd.getName(), "").replaceAll("[\\s\n,]", ",").split(",");
+            String[] ignoredBrands = getLinesWithoutCommand(message.getText(), igRmCmd.getName());
             if (ignoredBrands.length == 0) return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
             for (String brand : ignoredBrands) {
                 databaseManager.removeIgnoredBrand(brand);
@@ -189,4 +186,7 @@ public class CommandManager {
         return path;
     }
 
+    private String[] getLinesWithoutCommand(String string, String command) {
+        return string.replace("/"+command, "").replaceAll("[\\s\n,]", ",").split(",");
+    }
 }
