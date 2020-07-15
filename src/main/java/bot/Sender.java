@@ -93,6 +93,7 @@ public class Sender extends Thread {
             databaseManager.saveProduct(product);
             savedProducts.put(product.getUrl(), product.getNewPrice());
         } catch (SQLException throwables) {
+            throwables.printStackTrace();
             return;
         }
         bot.sendText(product.constructMessage());

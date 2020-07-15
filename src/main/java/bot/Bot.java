@@ -52,11 +52,12 @@ public class Bot extends TelegramLongPollingBot {
             String text = message.getText();
             if (text.equals("/start")) {
                 sendText("start parsing...");
-                Context.startSender();
+                Context.restartSender(0);
                 sender.setRunning(Boolean.TRUE);
             } else if (text.equals("/stop")) {
                 sendText("stopping...");
                 sender.setRunning(Boolean.FALSE);
+                sender.interrupt();
             }
             for (Command command : commandManager.getCommands()) {
                 if (text.contains("/" + command.getName())) {
