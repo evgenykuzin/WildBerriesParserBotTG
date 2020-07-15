@@ -1,6 +1,7 @@
 package commands;
 
 import bot.Bot;
+import context.Context;
 import database.DatabaseManager;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -84,7 +85,7 @@ public class CommandManager {
 
         Command igListCmd = new Command("ig_list");
         igListCmd.setAction(message -> {
-            Set<String> ignoredBrands = databaseManager.getAllIgnoredBrands();
+            Set<String> ignoredBrands = Context.sender.getIgnoredBrands();
             if (ignoredBrands == null || ignoredBrands.isEmpty()) {
                 return sendMessage("ignored brands list is empty(", message.getChatId());
             }
@@ -104,6 +105,7 @@ public class CommandManager {
                 if (brand.isEmpty() || brand.matches("[\\s\n,]")) continue;
                 if (existing.contains(brand)) continue;
                 databaseManager.saveIgnoredBrand(brand);
+                Context.sender.addIgnoredBrand(brand);
             }
             return sendMessage("brands ignored!", message.getChatId());
         });
@@ -116,6 +118,7 @@ public class CommandManager {
                 return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
             for (String brand : ignoredBrands) {
                 databaseManager.removeIgnoredBrand(brand);
+                Context.sender.removeIgnoredBrand(brand);
             }
             return sendMessage("brands not ignored anymore!", message.getChatId());
         });

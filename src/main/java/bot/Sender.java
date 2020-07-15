@@ -9,7 +9,7 @@ import parser.ShopParser;
 
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class Sender extends Thread {
@@ -17,6 +17,8 @@ public class Sender extends Thread {
     private final ShopParser shopParser;
     private final Set<String> categories;
     private final DatabaseManager databaseManager;
+    private final Set<String> ignoredBrands;
+    private Map<String, Double> savedProducts;
     private volatile Boolean running;
     private volatile long lastCall = 0;
 
@@ -25,6 +27,12 @@ public class Sender extends Thread {
         this.shopParser = shopParser;
         this.databaseManager = databaseManager;
         categories = databaseManager.getAllCategories();
+        ignoredBrands = databaseManager.getAllIgnoredBrands();
+        try {
+            savedProducts = databaseManager.getAllExistingProductsMap();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
         running = Boolean.TRUE;
     }
 
@@ -36,10 +44,9 @@ public class Sender extends Thread {
             if (running) {
                 if (categories.isEmpty()) {
                     System.out.println("categories is empty(");
-                    bot.sendText("categories is empty(");
+                    bot.sendText("categories is empty(\nuse 'cat_add' command to add categories");
                     running = Boolean.FALSE;
-                    bot.sendText("stopping parsing");
-                    bot.sendText("use 'cat_add' command to add categories");
+                    bot.sendText("stopping...");
                     continue;
                 }
                 for (String url : categories) {
@@ -51,15 +58,10 @@ public class Sender extends Thread {
                     Elements category = shopParser.parseCategory(url);
                     for (Element element : category) {
                         if (!running) break;
-                        Product parsedProduct = shopParser.parseProduct(element, databaseManager.getAllIgnoredBrands());
+                        Product parsedProduct = shopParser.parseProduct(element, ignoredBrands);
                         if (parsedProduct == null) continue;
-                        double savedProductPrice;
-                        try {
-                            savedProductPrice = databaseManager.getExistingProductPriceByUrl(parsedProduct.getUrl());
-                        } catch (SQLException throwables) {
-                            continue;
-                        }
-                        if (savedProductPrice == -1) {
+                        Double savedProductPrice = savedProducts.get(parsedProduct.getUrl());
+                        if (savedProductPrice == null) {
                             saveProduct(parsedProduct);
                         } else {
                             compareAndUpdateProducts(parsedProduct, savedProductPrice);
@@ -85,6 +87,7 @@ public class Sender extends Thread {
     private void saveProduct(Product product) {
         try {
             databaseManager.saveProduct(product);
+            savedProducts.put(product.getUrl(), product.getNewPrice());
         } catch (SQLException throwables) {
             return;
         }
@@ -99,11 +102,24 @@ public class Sender extends Thread {
             parsedProduct.setDiscountPercent(newDiscountPercent);
             try {
                 databaseManager.updateProduct(parsedProduct);
+                savedProducts.replace(parsedProduct.getUrl(), parsedProduct.getNewPrice());
             } catch (SQLSyntaxErrorException throwables) {
                 throwables.printStackTrace();
             }
             bot.sendText(parsedProduct.constructMessage());
         }
+    }
+
+    public void addIgnoredBrand(String brand) {
+        ignoredBrands.add(brand);
+    }
+
+    public void removeIgnoredBrand(String brand) {
+        ignoredBrands.remove(brand);
+    }
+
+    public Set<String> getIgnoredBrands() {
+        return ignoredBrands;
     }
 
     public Boolean isRunning() {

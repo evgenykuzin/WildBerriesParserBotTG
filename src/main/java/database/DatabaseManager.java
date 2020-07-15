@@ -6,9 +6,7 @@ import entities.Product;
 import properties.PropertiesManager;
 
 import java.sql.*;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 public class DatabaseManager {
     private final Connection connection;
@@ -63,18 +61,27 @@ public class DatabaseManager {
         return -1;
     }
 
+    public Map<String, Double> getAllExistingProductsMap() throws SQLException{
+        Map<String, Double> map = new HashMap<>();
+        try {
+            ResultSet resultSet = connection.prepareStatement("SELECT url, current_price FROM products").executeQuery();
+            while (resultSet.next()) {
+                String url = resultSet.getString("url");
+                double price = resultSet.getDouble("current_price");
+                map.put(url, price);
+            }
+        } catch (SQLException | ConnectionIsClosedException throwables) {
+            waitingDatabase(throwables);
+            throw new SQLException();
+        }
+        return map;
+    }
+
     public void saveProduct(Product product) throws SQLException {
         try {
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO products (url, product_name, brand_name, current_price, old_price, discount_percent) values (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE products.current_price = ?, products.old_price = ?, products.discount_percent = ?");
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO products (url, current_price) values (?,?)");
             ps.setString(1, product.getUrl());
-            ps.setString(2, product.getProductName());
-            ps.setString(3, product.getBrandName());
-            ps.setString(4, String.valueOf(product.getNewPrice()));
-            ps.setString(5, String.valueOf(product.getOldPrice()));
-            ps.setString(6, String.valueOf(product.getDiscountPercent()));
-            ps.setString(7, String.valueOf(product.getNewPrice()));
-            ps.setString(8, String.valueOf(product.getOldPrice()));
-            ps.setString(9, String.valueOf(product.getDiscountPercent()));
+            ps.setString(2, String.valueOf(product.getNewPrice()));
             ps.executeUpdate();
         } catch (SQLException | ConnectionIsClosedException throwables) {
             waitingDatabase(throwables);

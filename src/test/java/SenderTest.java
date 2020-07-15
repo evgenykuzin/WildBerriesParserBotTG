@@ -9,7 +9,9 @@ import parser.ShopParser;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class SenderTest {
@@ -51,6 +53,19 @@ public class SenderTest {
         } catch (SQLSyntaxErrorException throwables) {
             throwables.printStackTrace();
         }
+    }
+
+    @Test
+    public void testMap() {
+        Map<String, Double> map = new HashMap<>();
+        map.put("a", 0.1);
+        System.out.println(map.get("a"));
+        System.out.println(map.get("b"));
+        Double k = map.get("c");
+        System.out.println(k);
+        map.put("d", 10.0);
+        map.replace("d", 15.0);
+        System.out.println(map.get("d"));
     }
 
 }
