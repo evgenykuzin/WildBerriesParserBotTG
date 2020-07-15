@@ -52,16 +52,16 @@ public class Sender extends Thread {
                         if (!running) break;
                         Product parsedProduct = shopParser.parseProduct(element, databaseManager.getAllIgnoredBrands());
                         if (parsedProduct == null) continue;
-                        Product savedProduct = null;
+                        double savedProductPrice;
                         try {
-                            savedProduct = databaseManager.getExistingProductByUrl(parsedProduct.getUrl());
+                            savedProductPrice = databaseManager.getExistingProductPriceByUrl(parsedProduct.getUrl());
                         } catch (SQLException throwables) {
                             continue;
                         }
-                        if (savedProduct == null) {
+                        if (savedProductPrice == -1) {
                             saveProduct(parsedProduct);
                         } else {
-                            compareAndUpdateProducts(parsedProduct, savedProduct);
+                            compareAndUpdateProducts(parsedProduct, savedProductPrice);
                         }
                         waiting();
                     }
@@ -82,19 +82,19 @@ public class Sender extends Thread {
     }
 
     private void saveProduct(Product product) {
-            try {
-                databaseManager.saveProduct(product);
-            } catch (SQLException throwables) {
-                return;
-            }
-            bot.sendText(product.constructMessage());
+        try {
+            databaseManager.saveProduct(product);
+        } catch (SQLException throwables) {
+            return;
+        }
+        bot.sendText(product.constructMessage());
     }
 
-    public void compareAndUpdateProducts(Product parsedProduct, Product savedProduct) {
-        double newDiscountPercent = 100 - (parsedProduct.getNewPrice() * 100 / savedProduct.getNewPrice());
-        boolean condition = parsedProduct.getNewPrice() < savedProduct.getNewPrice();
+    public void compareAndUpdateProducts(Product parsedProduct, double savedProductPrice) {
+        double newDiscountPercent = 100 - (parsedProduct.getNewPrice() * 100 / savedProductPrice);
+        boolean condition = parsedProduct.getNewPrice() < savedProductPrice;
         if (condition) {
-            parsedProduct.setOldPrice(savedProduct.getNewPrice());
+            parsedProduct.setOldPrice(savedProductPrice);
             parsedProduct.setDiscountPercent(newDiscountPercent);
             try {
                 databaseManager.updateProduct(parsedProduct);

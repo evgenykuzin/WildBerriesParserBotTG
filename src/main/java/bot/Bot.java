@@ -2,19 +2,16 @@ package bot;
 
 import commands.Command;
 import commands.CommandManager;
+import context.Context;
 import database.DatabaseManager;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.*;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import parser.ShopParser;
 import properties.PropertiesManager;
 
-import java.io.Serializable;
 import java.util.Properties;
 
 public class Bot extends TelegramLongPollingBot {
@@ -52,13 +49,14 @@ public class Bot extends TelegramLongPollingBot {
             String text = message.getText();
             if (text.equals("/start")) {
                 sendText("start parsing...");
+                Context.startSender();
                 sender.setRunning(Boolean.TRUE);
             } else if (text.equals("/stop")) {
                 sendText("stopping...");
                 sender.setRunning(Boolean.FALSE);
             }
             for (Command command : commandManager.getCommands()) {
-                if (text.contains("/"+command.getName())) {
+                if (text.contains("/" + command.getName())) {
                     try {
                         execute(command.action(message));
                     } catch (TelegramApiException e) {

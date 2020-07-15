@@ -11,7 +11,6 @@ import parser.ShopParser;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class Context {
     public static DatabaseManager databaseManager = databaseManager();
@@ -19,7 +18,6 @@ public class Context {
     public static ShopParser shopParser = shopParser();
     public static Bot bot = bot(databaseManager);
     public static Sender sender = sender(bot, shopParser, linksSet, databaseManager);
-    public static ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private static DatabaseManager databaseManager() {
         return new DatabaseManager();

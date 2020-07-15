@@ -1,5 +1,6 @@
 package database;
 
+import com.mysql.cj.exceptions.ConnectionIsClosedException;
 import context.Context;
 import entities.Product;
 import properties.PropertiesManager;
@@ -47,25 +48,22 @@ public class DatabaseManager {
         pass = dbProps.getProperty("db.password");
     }
 
-    public Product getExistingProductByUrl(String url) throws SQLSyntaxErrorException {
-        Product product = null;
+    public double getExistingProductPriceByUrl(String url) throws SQLException {
         try {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM products WHERE url = ?");
             ps.setString(1, url);
             ResultSet resultSet = ps.executeQuery();
-            while (resultSet.next()) {
-                product = constructProduct(resultSet);
+            if (resultSet.next()) {
+                return resultSet.getDouble("current_price");
             }
-        } catch (SQLSyntaxErrorException ssee) {
-            waitingDatabase(ssee);
-            throw new SQLSyntaxErrorException();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException | ConnectionIsClosedException throwables) {
+            waitingDatabase(throwables);
+            throw new SQLException();
         }
-        return product;
+        return -1;
     }
 
-    public void saveProduct(Product product) throws SQLSyntaxErrorException {
+    public void saveProduct(Product product) throws SQLException {
         try {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO products (url, product_name, brand_name, current_price, old_price, discount_percent) values (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE products.current_price = ?, products.old_price = ?, products.discount_percent = ?");
             ps.setString(1, product.getUrl());
@@ -78,11 +76,9 @@ public class DatabaseManager {
             ps.setString(8, String.valueOf(product.getOldPrice()));
             ps.setString(9, String.valueOf(product.getDiscountPercent()));
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException ssee) {
-            waitingDatabase(ssee);
-            throw new SQLSyntaxErrorException();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException | ConnectionIsClosedException throwables) {
+            waitingDatabase(throwables);
+            throw new SQLException();
         }
     }
 
@@ -98,7 +94,7 @@ public class DatabaseManager {
             ps.setDouble(3, product.getDiscountPercent());
             ps.setString(4, product.getUrl());
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
             waitingDatabase(ssee);
             throw new SQLSyntaxErrorException();
         } catch (SQLException throwables) {
@@ -113,7 +109,7 @@ public class DatabaseManager {
             while (resultSet.next()) {
                 set.add(constructProduct(resultSet));
             }
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
             waitingDatabase(ssee);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -146,7 +142,7 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO ignore_brands (brand) values(?)");
             ps.setString(1, brand);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
             waitingDatabase(ssee);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -158,7 +154,7 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("DELETE FROM ignore_brands WHERE brand = ?");
             ps.setString(1, brand);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
             waitingDatabase(ssee);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -174,7 +170,7 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO categories (url) values(?)");
             ps.setString(1, url);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
             waitingDatabase(ssee);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -186,7 +182,7 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("DELETE FROM categories WHERE url = ?");
             ps.setString(1, url);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
             waitingDatabase(ssee);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -200,7 +196,7 @@ public class DatabaseManager {
             while (resultSet.next()) {
                 set.add(resultSet.getString(column));
             }
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
             waitingDatabase(ssee);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -210,10 +206,8 @@ public class DatabaseManager {
 
     private void waitingDatabase(Exception e) {
         e.printStackTrace();
-        if (e.getMessage().contains("max_questions")) {
-            System.out.println("waiting database...");
-            Context.restartSender(reconnectingDBTime);
-        }
+        System.out.println("waiting database...");
+        Context.restartSender(reconnectingDBTime);
     }
 
 }

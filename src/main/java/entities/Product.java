@@ -59,19 +59,18 @@ public class Product {
     }
 
     public String constructMessage() {
-        return new StringBuilder()
-                .append("[")
-                .append(brandName)
-                .append(" \\ ")
-                .append(productName)
-                .append("]\nЦена: ")
-                .append(newPrice)
-                .append(" < ")
-                .append(oldPrice)
-                .append(" = ")
-                .append(discountPercent)
-                .append("%\n")
-                .append(url).toString();
+        return "[" +
+                brandName +
+                " \\ " +
+                productName +
+                "]\nЦена: " +
+                newPrice +
+                " < " +
+                oldPrice +
+                " = " +
+                discountPercent +
+                "%\n" +
+                url;
     }
 
     @Override
