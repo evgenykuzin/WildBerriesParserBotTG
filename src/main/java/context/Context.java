@@ -8,35 +8,27 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import parser.ShopParser;
 
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 public class Context {
     public static DatabaseManager databaseManager = databaseManager();
-    public static Set<String> linksSet = linksSet(databaseManager);
     public static ShopParser shopParser = shopParser();
     public static Bot bot = bot(databaseManager);
-    public static Sender sender = sender(bot, shopParser, linksSet, databaseManager);
+    public static Sender sender = sender(bot, shopParser, databaseManager);
 
     private static DatabaseManager databaseManager() {
         return new DatabaseManager();
-    }
-
-    private static Set<String> linksSet(DatabaseManager databaseManager) {
-        return databaseManager.getAllCategories();
     }
 
     private static ShopParser shopParser() {
         return new ShopParser();
     }
 
-    private static Sender sender(Bot bot, ShopParser shopParser, Set<String> linksSet, DatabaseManager databaseManager) {
-        return new Sender(bot, shopParser, linksSet, databaseManager);
+    private static Sender sender(Bot bot, ShopParser shopParser, DatabaseManager databaseManager) {
+        return new Sender(bot, shopParser, databaseManager);
     }
 
     public static void startSender() {
         try {
+            sender = new Sender(bot, shopParser, databaseManager);
             sender.run();
         } catch (OutOfMemoryError throwable) {
             System.out.println("out of memory");

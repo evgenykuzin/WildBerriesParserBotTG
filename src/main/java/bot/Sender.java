@@ -9,6 +9,7 @@ import parser.ShopParser;
 
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
+import java.util.HashSet;
 import java.util.Set;
 
 public class Sender extends Thread {
@@ -19,11 +20,11 @@ public class Sender extends Thread {
     private volatile Boolean running;
     private volatile long lastCall = 0;
 
-    public Sender(Bot bot, ShopParser shopParser, Set<String> categories, DatabaseManager databaseManager) {
+    public Sender(Bot bot, ShopParser shopParser, DatabaseManager databaseManager) {
         this.bot = bot;
         this.shopParser = shopParser;
-        this.categories = categories;
         this.databaseManager = databaseManager;
+        categories = databaseManager.getAllCategories();
         running = Boolean.TRUE;
     }
 
