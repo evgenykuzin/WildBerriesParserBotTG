@@ -7,6 +7,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import parser.ShopParser;
 
+import java.sql.SQLException;
+import java.sql.SQLSyntaxErrorException;
 import java.util.Set;
 
 public class Sender extends Thread {
@@ -36,6 +38,7 @@ public class Sender extends Thread {
                     bot.sendText("categories is empty(");
                     running = Boolean.FALSE;
                     bot.sendText("stopping parsing");
+                    bot.sendText("use 'cat_add' command to add categories");
                     continue;
                 }
                 for (String url : categories) {
@@ -49,7 +52,12 @@ public class Sender extends Thread {
                         if (!running) break;
                         Product parsedProduct = shopParser.parseProduct(element, databaseManager.getAllIgnoredBrands());
                         if (parsedProduct == null) continue;
-                        Product savedProduct = databaseManager.getExistingProductByUrl(parsedProduct.getUrl());
+                        Product savedProduct = null;
+                        try {
+                            savedProduct = databaseManager.getExistingProductByUrl(parsedProduct.getUrl());
+                        } catch (SQLException throwables) {
+                            continue;
+                        }
                         if (savedProduct == null) {
                             saveProduct(parsedProduct);
                         } else {
@@ -74,25 +82,25 @@ public class Sender extends Thread {
     }
 
     private void saveProduct(Product product) {
-        boolean condition = product.getNewPrice() <= 100 ||
-                product.getDiscountPercent() >= 85;
-        condition = true;
-        if (condition) {
+            try {
+                databaseManager.saveProduct(product);
+            } catch (SQLException throwables) {
+                return;
+            }
             bot.sendText(product.constructMessage());
-            databaseManager.saveProduct(product);
-        }
     }
 
     public void compareAndUpdateProducts(Product parsedProduct, Product savedProduct) {
         double newDiscountPercent = 100 - (parsedProduct.getNewPrice() * 100 / savedProduct.getNewPrice());
-        boolean condition = newDiscountPercent >= 85
-                || parsedProduct.getNewPrice() < savedProduct.getNewPrice()
-                && parsedProduct.getNewPrice() <= 100;
-        condition = parsedProduct.getNewPrice() < savedProduct.getNewPrice();
+        boolean condition = parsedProduct.getNewPrice() < savedProduct.getNewPrice();
         if (condition) {
             parsedProduct.setOldPrice(savedProduct.getNewPrice());
             parsedProduct.setDiscountPercent(newDiscountPercent);
-            databaseManager.updateProduct(parsedProduct);
+            try {
+                databaseManager.updateProduct(parsedProduct);
+            } catch (SQLSyntaxErrorException throwables) {
+                throwables.printStackTrace();
+            }
             bot.sendText(parsedProduct.constructMessage());
         }
     }
@@ -103,10 +111,6 @@ public class Sender extends Thread {
 
     public synchronized void setRunning(Boolean running) {
         this.running = running;
-    }
-
-    public DatabaseManager getDatabaseManager() {
-        return databaseManager;
     }
 
 }

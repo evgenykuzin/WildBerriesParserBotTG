@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import parser.ShopParser;
 
 import java.io.IOException;
+import java.sql.SQLSyntaxErrorException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,9 +44,18 @@ public class SenderTest {
         savedProduct.setDiscountPercent(90.0);
 
         sender.compareAndUpdateProducts(parsedProduct, savedProduct);
-        Product updatedProduct = new DatabaseManager().getExistingProductByUrl(parsedProduct.getUrl());
+        Product updatedProduct = null;
+        try {
+            updatedProduct = new DatabaseManager().getExistingProductByUrl(parsedProduct.getUrl());
+        } catch (SQLSyntaxErrorException throwables) {
+            throwables.printStackTrace();
+        }
         Assertions.assertEquals(expectedProduct, updatedProduct);
-        new DatabaseManager().updateProduct(savedProduct);
+        try {
+            new DatabaseManager().updateProduct(savedProduct);
+        } catch (SQLSyntaxErrorException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
 }

@@ -47,7 +47,7 @@ public class DatabaseManager {
         pass = dbProps.getProperty("db.password");
     }
 
-    public Product getExistingProductByUrl(String url) {
+    public Product getExistingProductByUrl(String url) throws SQLSyntaxErrorException {
         Product product = null;
         try {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM products WHERE url = ?");
@@ -56,17 +56,16 @@ public class DatabaseManager {
             while (resultSet.next()) {
                 product = constructProduct(resultSet);
             }
-        }
-        catch (SQLSyntaxErrorException ssee) {
+        } catch (SQLSyntaxErrorException ssee) {
             waitingDatabase(ssee);
-        }
-        catch (SQLException e) {
+            throw new SQLSyntaxErrorException();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return product;
     }
 
-    public void saveProduct(Product product) {
+    public void saveProduct(Product product) throws SQLSyntaxErrorException {
         try {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO products (url, product_name, brand_name, current_price, old_price, discount_percent) values (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE products.current_price = ?, products.old_price = ?, products.discount_percent = ?");
             ps.setString(1, product.getUrl());
@@ -79,16 +78,15 @@ public class DatabaseManager {
             ps.setString(8, String.valueOf(product.getOldPrice()));
             ps.setString(9, String.valueOf(product.getDiscountPercent()));
             ps.executeUpdate();
-        }
-        catch (SQLSyntaxErrorException ssee) {
+        } catch (SQLSyntaxErrorException ssee) {
             waitingDatabase(ssee);
-        }
-        catch (SQLException throwables) {
+            throw new SQLSyntaxErrorException();
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
-    public void updateProduct(Product product) {
+    public void updateProduct(Product product) throws SQLSyntaxErrorException {
         try {
             PreparedStatement ps = connection.prepareStatement("UPDATE products SET " +
                     "current_price = ?," +
@@ -100,11 +98,10 @@ public class DatabaseManager {
             ps.setDouble(3, product.getDiscountPercent());
             ps.setString(4, product.getUrl());
             ps.executeUpdate();
-        }
-        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
-        }
-        catch (SQLException throwables) {
+            throw new SQLSyntaxErrorException();
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
@@ -116,17 +113,15 @@ public class DatabaseManager {
             while (resultSet.next()) {
                 set.add(constructProduct(resultSet));
             }
-        }
-        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
-        }
-        catch (SQLException throwables) {
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
         return set;
     }
 
-    private Product constructProduct(ResultSet resultSet) throws SQLException{
+    private Product constructProduct(ResultSet resultSet) throws SQLException {
         String url = resultSet.getString("url");
         String productName = resultSet.getString("product_name");
         String brandName = resultSet.getString("brand_name");
@@ -151,11 +146,9 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO ignore_brands (brand) values(?)");
             ps.setString(1, brand);
             ps.executeUpdate();
-        }
-        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
-        }
-        catch (SQLException throwables) {
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
@@ -165,11 +158,9 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("DELETE FROM ignore_brands WHERE brand = ?");
             ps.setString(1, brand);
             ps.executeUpdate();
-        }
-        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
-        }
-        catch (SQLException throwables) {
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
@@ -183,11 +174,9 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO categories (url) values(?)");
             ps.setString(1, url);
             ps.executeUpdate();
-        }
-        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
-        }
-        catch (SQLException throwables) {
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
@@ -197,11 +186,9 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("DELETE FROM categories WHERE url = ?");
             ps.setString(1, url);
             ps.executeUpdate();
-        }
-        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
-        }
-        catch (SQLException throwables) {
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
@@ -213,11 +200,9 @@ public class DatabaseManager {
             while (resultSet.next()) {
                 set.add(resultSet.getString(column));
             }
-        }
-        catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException ssee) {
             waitingDatabase(ssee);
-        }
-        catch (SQLException throwables) {
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
         return set;
