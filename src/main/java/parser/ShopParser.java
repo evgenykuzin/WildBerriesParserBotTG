@@ -25,7 +25,13 @@ public class ShopParser {
             doc = Jsoup.parse(new URL(link), 0);
             return doc.getElementsByClass("dtList-inner");
         } catch (HttpStatusException hse) {
-            Context.bot.sendText("error parsing url: " + hse.getUrl());
+            System.out.println("error parsing url: " + hse.getUrl());
+            if (link.contains(".ru")) {
+                System.out.println("trying '.kz' ...");
+                return parseCategory(link.replace(".ru", ".kz"));
+            } else {
+                System.out.println("failed to parse url with '.kz'");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
