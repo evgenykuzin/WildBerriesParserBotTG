@@ -1,7 +1,6 @@
 package database;
 
 import com.mysql.cj.exceptions.ConnectionIsClosedException;
-import context.Context;
 import entities.Product;
 import properties.PropertiesManager;
 
@@ -13,9 +12,12 @@ public class DatabaseManager {
     private String url;
     private String name;
     private String pass;
-    private static final long reconnectingDBTime = 1800000;
-
+    private static final long reconnectingDBTime = 900000;
+    private long waiting;
+    private long lastCall;
     public DatabaseManager() {
+        waiting = 0;
+        lastCall = 0;
         loadProps();
         connection = initConnection(url, name, pass);
     }
@@ -55,8 +57,8 @@ public class DatabaseManager {
             if (resultSet.next()) {
                 return resultSet.getDouble("current_price");
             }
-        } catch (SQLException | ConnectionIsClosedException throwables) {
-            waitingDatabase(throwables);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException throwables) {
+            waitingDatabase(reconnectingDBTime);
             throw new SQLException();
         }
         return -1;
@@ -72,8 +74,8 @@ public class DatabaseManager {
                 double price = resultSet.getDouble("current_price");
                 map.put(url, price);
             }
-        } catch (SQLException | ConnectionIsClosedException throwables) {
-            waitingDatabase(throwables);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException throwables) {
+            waitingDatabase(reconnectingDBTime);
             throw new SQLException();
         }
         return map;
@@ -86,8 +88,8 @@ public class DatabaseManager {
             ps.setString(1, product.getUrl());
             ps.setString(2, String.valueOf(product.getNewPrice()));
             ps.executeUpdate();
-        } catch (SQLException | ConnectionIsClosedException throwables) {
-            waitingDatabase(throwables);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException throwables) {
+            waitingDatabase(reconnectingDBTime);
             throw new SQLException();
         }
     }
@@ -101,8 +103,8 @@ public class DatabaseManager {
             ps.setDouble(1, product.getNewPrice());
             ps.setString(2, product.getUrl());
             ps.executeUpdate();
-        } catch (SQLException | ConnectionIsClosedException ssee) {
-            waitingDatabase(ssee);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
+            waitingDatabase(reconnectingDBTime);
             throw new SQLException();
         }
     }
@@ -115,7 +117,7 @@ public class DatabaseManager {
                 set.add(constructProduct(resultSet));
             }
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(ssee);
+            waitingDatabase(reconnectingDBTime);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -148,7 +150,7 @@ public class DatabaseManager {
             ps.setString(1, brand);
             ps.executeUpdate();
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(ssee);
+            waitingDatabase(reconnectingDBTime);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -160,7 +162,7 @@ public class DatabaseManager {
             ps.setString(1, brand);
             ps.executeUpdate();
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(ssee);
+            waitingDatabase(reconnectingDBTime);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -176,7 +178,7 @@ public class DatabaseManager {
             ps.setString(1, url);
             ps.executeUpdate();
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(ssee);
+            waitingDatabase(reconnectingDBTime);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -188,7 +190,7 @@ public class DatabaseManager {
             ps.setString(1, url);
             ps.executeUpdate();
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(ssee);
+            waitingDatabase(reconnectingDBTime);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -202,17 +204,29 @@ public class DatabaseManager {
                 set.add(resultSet.getString(column));
             }
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(ssee);
+            waitingDatabase(reconnectingDBTime);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
         return set;
     }
 
-    private void waitingDatabase(Exception e) {
-        e.printStackTrace();
-        System.out.println("waiting database...");
-        Context.restartSender(reconnectingDBTime);
+    public void waitingDatabase(long time) {
+        if (!isWaiting()) {
+            System.out.println("waiting database...");
+            waiting = time;
+            lastCall = System.currentTimeMillis();
+        }
+    }
+
+    public boolean isWaiting() {
+        if (System.currentTimeMillis() - lastCall > waiting) {
+            lastCall = 0;
+            waiting = 0;
+            return false;
+        } else {
+            return true;
+        }
     }
 
 }

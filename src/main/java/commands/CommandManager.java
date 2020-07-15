@@ -42,7 +42,7 @@ public class CommandManager {
 
         Command catListCmd = new Command("cat_list");
         catListCmd.setAction(message -> {
-            Set<String> categories = databaseManager.getAllCategories();
+            Set<String> categories = Context.sender.getCategories();
             if (categories == null || categories.isEmpty()) {
                 return sendMessage("categories is empty(", message.getChatId());
             }
@@ -57,15 +57,29 @@ public class CommandManager {
 
         Command catAddCmd = new Command("cat_add");
         catAddCmd.setAction(message -> {
+            if (databaseManager.isWaiting()) {
+                return sendMessage("I'm tired! wait about 15 minutes and try again", message.getChatId());
+            }
             String[] categories = getLinesWithoutCommand(message.getText(), catAddCmd.getName());
             if (categories.length == 0) {
                 return sendMessage("please, enter a urls of categories you need. Split by spaces.", message.getChatId());
             }
-            Set<String> existing = databaseManager.getAllCategories();
+            Set<String> existing = Context.sender.getCategories();
             for (String url : categories) {
-                if (!url.contains("http")) continue;
-                if (existing.contains(url)) continue;
+                if (!url.contains("http")) {
+                    bot.sendText(url + " is not valid url");
+                    continue;
+                }
+                if (existing.contains(url)) {
+                    bot.sendText(url + " always exists");
+                    continue;
+                }
+                bot.sendText("saving " + url);
                 databaseManager.saveCategory(url);
+                Context.sender.addCategory(url);
+                if (databaseManager.isWaiting()) {
+                    return sendMessage("something wrong...", message.getChatId());
+                }
             }
             return sendMessage("categories saved!", message.getChatId());
         });
@@ -73,11 +87,18 @@ public class CommandManager {
 
         Command catRmCmd = new Command("cat_rm");
         catRmCmd.setAction(message -> {
+            if (databaseManager.isWaiting()){
+                return sendMessage("i'm tired! wait about 15 minutes and try again", message.getChatId());
+            }
             String[] categories = getLinesWithoutCommand(message.getText(), catRmCmd.getName());
             if (categories.length == 0)
                 return sendMessage("please, enter a urls of categories you need. Split by spaces.", message.getChatId());
             for (String url : categories) {
+                bot.sendText("removing " + url);
                 databaseManager.removeCategory(url);
+                if (databaseManager.isWaiting()) {
+                    bot.sendText("something wrong...");
+                }
             }
             return sendMessage("categories removed!", message.getChatId());
         });
@@ -97,15 +118,25 @@ public class CommandManager {
 
         Command igAddCmd = new Command("ig_add");
         igAddCmd.setAction(message -> {
+            if (databaseManager.isWaiting()){
+                return sendMessage("i'm tired! wait about 15 minutes and try again", message.getChatId());
+            }
             String[] ignoredBrands = getLinesWithoutCommand(message.getText(), igAddCmd.getName());
             if (ignoredBrands.length == 0)
                 return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
             Set<String> existing = databaseManager.getAllIgnoredBrands();
             for (String brand : ignoredBrands) {
                 if (brand.isEmpty() || brand.matches("[\\s\n,]")) continue;
-                if (existing.contains(brand)) continue;
+                if (existing.contains(brand)) {
+                    bot.sendText(brand + "always ignored");
+                    continue;
+                }
+                bot.sendText("saving " + brand + " to ignore list");
                 databaseManager.saveIgnoredBrand(brand);
                 Context.sender.addIgnoredBrand(brand);
+                if (databaseManager.isWaiting()) {
+                    bot.sendText("something wrong...");
+                }
             }
             return sendMessage("brands ignored!", message.getChatId());
         });
@@ -113,12 +144,19 @@ public class CommandManager {
 
         Command igRmCmd = new Command("ig_rm");
         igRmCmd.setAction(message -> {
+            if (databaseManager.isWaiting()){
+                return sendMessage("i'm tired! wait about 15 minutes and try again", message.getChatId());
+            }
             String[] ignoredBrands = getLinesWithoutCommand(message.getText(), igRmCmd.getName());
             if (ignoredBrands.length == 0)
                 return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
             for (String brand : ignoredBrands) {
+                bot.sendText("removing " + brand + " from ignore list");
                 databaseManager.removeIgnoredBrand(brand);
                 Context.sender.removeIgnoredBrand(brand);
+                if (databaseManager.isWaiting()) {
+                    bot.sendText("something wrong...");
+                }
             }
             return sendMessage("brands not ignored anymore!", message.getChatId());
         });

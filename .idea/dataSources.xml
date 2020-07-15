@@ -1,29 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="hqba6fik9xx3mt4x@e11wl4mksauxgu1w.cbetxkdyhwsb.us-east-1.rds.amazonaws.com" uuid="ff9da1b0-0259-4bbc-a445-c226afa18b8b">
-      <driver-ref>mysql.8</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://e11wl4mksauxgu1w.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/hqba6fik9xx3mt4x</jdbc-url>
-    </data-source>
-    <data-source source="LOCAL" name="wildberries@localhost" uuid="d3dc81e7-484c-4fde-abb6-a13036916c89">
-      <driver-ref>mysql.8</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://localhost:3306/wildberries?serverTimezone=UTC</jdbc-url>
-    </data-source>
-    <data-source source="LOCAL" name="test@localhost" uuid="0d2395aa-f456-458a-950d-c6630e3d3e66">
-      <driver-ref>mysql.8</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://localhost:3306/test?serverTimezone=UTC</jdbc-url>
-    </data-source>
     <data-source source="LOCAL" name="herokuDB" uuid="5c450dd2-7e0f-4c90-b97f-36dedc5107dd">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
       <jdbc-url>jdbc:mysql://b0e7856d06900d:ab0ab17b@us-cdbr-east-02.cleardb.com/heroku_c170eb5fd8e7182?reconnect=true</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="test@localhost" uuid="62f5af2e-0f7d-422a-bbbc-b049156fbfa2">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://localhost:3306/test?serverTimezone=UTC</jdbc-url>
     </data-source>
   </component>
 </project>

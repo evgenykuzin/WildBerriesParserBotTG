@@ -8,7 +8,6 @@ import org.jsoup.select.Elements;
 import parser.ShopParser;
 
 import java.sql.SQLException;
-import java.sql.SQLSyntaxErrorException;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,7 +40,7 @@ public class Sender extends Thread {
         System.out.println("restarted");
         bot.sendText("restarted");
         while (true) {
-            if (running) {
+            if (running && !databaseManager.isWaiting()) {
                 if (categories.isEmpty()) {
                     System.out.println("categories is empty(");
                     bot.sendText("categories is empty(\nuse 'cat_add' command to add categories");
@@ -108,6 +107,18 @@ public class Sender extends Thread {
             }
             bot.sendText(parsedProduct.constructMessage());
         }
+    }
+
+    public void addCategory(String brand) {
+        ignoredBrands.add(brand);
+    }
+
+    public void removeCategory(String brand) {
+        ignoredBrands.remove(brand);
+    }
+
+    public Set<String> getCategories() {
+        return categories;
     }
 
     public void addIgnoredBrand(String brand) {

@@ -1,36 +1,29 @@
+import database.DatabaseManager;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Random;
 
 public class DatabaseTest {
 
     @Test
-    public void testIfNotExists() throws SQLException {
-        Connection connection = initConnection(
+    public void testConnectionException() throws SQLException {
+        DatabaseManager databaseManager = new DatabaseManager(initConnection(
                 "jdbc:mysql://localhost:3306/test?serverTimezone=UTC",
                 "root",
                 "1357"
-        );
-        connection.prepareStatement("INSERT INTO test_table (product_name) values('value') ON DUPLICATE KEY UPDATE product_name = values(product_name) ").executeUpdate();
-    }
-
-    @Test
-    public void testOnDuplicate() throws SQLException{
-        Connection connection = initConnection(
-                "jdbc:mysql://localhost:3306/test?serverTimezone=UTC",
-                "root",
-                "1357"
-        );
-        PreparedStatement ps = connection.prepareStatement("INSERT INTO test_table (url, product_name, current_price, old_price, discount_percent) VALUES(?,?,?,?,?) ON DUPLICATE KEY UPDATE current_price = 0");
-        ps.setString(1, "http://google.com");
-        ps.setString(2, "google");
-        ps.setDouble(3, 100);
-        ps.setDouble(4, 200);
-        ps.setDouble(5, 50);
-        ps.executeUpdate();
+        ));
+        databaseManager.waitingDatabase(10000);
+        while (true) {
+            if (databaseManager.isWaiting()) {
+              System.out.println("waiting");
+            } else {
+               System.out.println("working");
+            }
+        }
     }
 
     private Connection initConnection(String url, String name, String pass) {
