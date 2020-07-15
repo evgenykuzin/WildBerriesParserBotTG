@@ -103,7 +103,7 @@ public class Sender extends Thread {
             try {
                 databaseManager.updateProduct(parsedProduct);
                 savedProducts.replace(parsedProduct.getUrl(), parsedProduct.getNewPrice());
-            } catch (SQLSyntaxErrorException throwables) {
+            } catch (SQLException throwables) {
                 throwables.printStackTrace();
             }
             bot.sendText(parsedProduct.constructMessage());
@@ -129,5 +129,6 @@ public class Sender extends Thread {
     public synchronized void setRunning(Boolean running) {
         this.running = running;
     }
+
 
 }

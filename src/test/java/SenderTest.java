@@ -50,7 +50,7 @@ public class SenderTest {
         Assertions.assertEquals(expectedProduct.getNewPrice(), updatedProductPrice);
         try {
             new DatabaseManager().updateProduct(expectedProduct);
-        } catch (SQLSyntaxErrorException throwables) {
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }

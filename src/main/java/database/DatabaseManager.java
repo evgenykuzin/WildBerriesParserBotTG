@@ -48,7 +48,8 @@ public class DatabaseManager {
 
     public double getExistingProductPriceByUrl(String url) throws SQLException {
         try {
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM products WHERE url = ?");
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT * FROM products WHERE url = ?");
             ps.setString(1, url);
             ResultSet resultSet = ps.executeQuery();
             if (resultSet.next()) {
@@ -64,7 +65,8 @@ public class DatabaseManager {
     public Map<String, Double> getAllExistingProductsMap() throws SQLException{
         Map<String, Double> map = new HashMap<>();
         try {
-            ResultSet resultSet = connection.prepareStatement("SELECT url, current_price FROM products").executeQuery();
+            ResultSet resultSet = connection.prepareStatement(
+                    "SELECT * FROM products").executeQuery();
             while (resultSet.next()) {
                 String url = resultSet.getString("url");
                 double price = resultSet.getDouble("current_price");
@@ -79,7 +81,8 @@ public class DatabaseManager {
 
     public void saveProduct(Product product) throws SQLException {
         try {
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO products (url, current_price) values (?,?)");
+            PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO products (url, current_price) VALUES (?,?)");
             ps.setString(1, product.getUrl());
             ps.setString(2, String.valueOf(product.getNewPrice()));
             ps.executeUpdate();
@@ -89,23 +92,18 @@ public class DatabaseManager {
         }
     }
 
-    public void updateProduct(Product product) throws SQLSyntaxErrorException {
+    public void updateProduct(Product product) throws SQLException {
         try {
-            PreparedStatement ps = connection.prepareStatement("UPDATE products SET " +
-                    "current_price = ?," +
-                    "old_price = ?," +
-                    "discount_percent = ?" +
+            PreparedStatement ps = connection.prepareStatement(
+                    "UPDATE products SET " +
+                    "current_price = ? " +
                     "WHERE url = ?");
             ps.setDouble(1, product.getNewPrice());
-            ps.setDouble(2, product.getOldPrice());
-            ps.setDouble(3, product.getDiscountPercent());
-            ps.setString(4, product.getUrl());
+            ps.setString(2, product.getUrl());
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
+        } catch (SQLException | ConnectionIsClosedException ssee) {
             waitingDatabase(ssee);
-            throw new SQLSyntaxErrorException();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            throw new SQLException();
         }
     }
 
