@@ -65,6 +65,11 @@ public class Sender extends Thread {
                         } else {
                             compareAndUpdateProducts(parsedProduct, savedProductPrice);
                         }
+//                        try {
+//                            sleep(5000);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
                         waiting();
                     }
                 }

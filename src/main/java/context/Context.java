@@ -11,7 +11,7 @@ import parser.ShopParser;
 public class Context {
     public static DatabaseManager databaseManager = databaseManager();
     public static ShopParser shopParser = shopParser();
-    public static Bot bot = bot(databaseManager);
+    public static Bot bot = bot();
     public static Sender sender = sender(bot, shopParser, databaseManager);
 
     private static DatabaseManager databaseManager() {
@@ -50,10 +50,10 @@ public class Context {
 
     }
 
-    private static Bot bot(DatabaseManager databaseManager) {
+    private static Bot bot() {
         ApiContextInitializer.init();
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
-        Bot bot = new Bot(databaseManager);
+        Bot bot = new Bot();
         try {
             telegramBotsApi.registerBot(bot);
         } catch (TelegramApiException tae) {
@@ -62,7 +62,7 @@ public class Context {
         return bot;
     }
 
-    public static void initBot() {
+    public static void setSender() {
         bot.setSender(sender);
     }
 }

@@ -18,11 +18,14 @@ public class Bot extends TelegramLongPollingBot {
     private String botName;
     private String botToken;
     private long chatId = 443215848;
-    private ShopParser shopParser;
     private Sender sender;
-    private CommandManager commandManager;
-    private DatabaseManager databaseManager;
+    private final CommandManager commandManager;
+    private final DatabaseManager databaseManager;
     public static final long testChatId = 328018558; //убрать!
+
+    public Bot() {
+        this(Context.databaseManager);
+    }
 
     public Bot(DatabaseManager databaseManager) {
         this(databaseManager, false);
@@ -106,14 +109,6 @@ public class Bot extends TelegramLongPollingBot {
         sendMessage.setChatId(chatId);
         sendMessage.setText(text);
         return sendMessage;
-    }
-
-    public ShopParser getShopParser() {
-        return shopParser;
-    }
-
-    public void setShopParser(ShopParser shopParser) {
-        this.shopParser = shopParser;
     }
 
     public long getChatId() {

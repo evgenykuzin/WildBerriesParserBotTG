@@ -67,8 +67,7 @@ public class CommandManager {
             Set<String> existing = Context.sender.getCategories();
             for (String url : categories) {
                 if (!url.contains("http")) {
-                    bot.sendText(url + " is not valid url");
-                    continue;
+                    return sendMessage(url + " is not valid url", message.getChatId());
                 }
                 if (existing.contains(url)) {
                     bot.sendText(url + " always exists");
@@ -87,7 +86,7 @@ public class CommandManager {
 
         Command catRmCmd = new Command("cat_rm");
         catRmCmd.setAction(message -> {
-            if (databaseManager.isWaiting()){
+            if (databaseManager.isWaiting()) {
                 return sendMessage("i'm tired! wait about 15 minutes and try again", message.getChatId());
             }
             String[] categories = getLinesWithoutCommand(message.getText(), catRmCmd.getName());
@@ -97,7 +96,7 @@ public class CommandManager {
                 bot.sendText("removing " + url);
                 databaseManager.removeCategory(url);
                 if (databaseManager.isWaiting()) {
-                    bot.sendText("something wrong...");
+                    return sendMessage("something wrong...", message.getChatId());
                 }
             }
             return sendMessage("categories removed!", message.getChatId());
@@ -110,21 +109,24 @@ public class CommandManager {
             if (ignoredBrands == null || ignoredBrands.isEmpty()) {
                 return sendMessage("ignored brands list is empty(", message.getChatId());
             }
-            StringBuilder sb = new StringBuilder();
-            ignoredBrands.forEach(c -> sb.append(c).append("\n"));
-            return sendMessage(sb.toString(), message.getChatId());
+            try {
+                bot.execute(sendDocument(ignoredBrands, "ignored-brands", message.getChatId()));
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+            return new VoidMethod();
         });
         addCommand(igListCmd);
 
         Command igAddCmd = new Command("ig_add");
         igAddCmd.setAction(message -> {
-            if (databaseManager.isWaiting()){
+            if (databaseManager.isWaiting()) {
                 return sendMessage("i'm tired! wait about 15 minutes and try again", message.getChatId());
             }
-            String[] ignoredBrands = getLinesWithoutCommand(message.getText(), igAddCmd.getName());
+            String[] ignoredBrands = getLinesWithoutCommand(message.getText(), igAddCmd.getName(), "[\n,]");
             if (ignoredBrands.length == 0)
                 return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
-            Set<String> existing = databaseManager.getAllIgnoredBrands();
+            Set<String> existing = Context.sender.getIgnoredBrands();
             for (String brand : ignoredBrands) {
                 if (brand.isEmpty() || brand.matches("[\\s\n,]")) continue;
                 if (existing.contains(brand)) {
@@ -135,7 +137,7 @@ public class CommandManager {
                 databaseManager.saveIgnoredBrand(brand);
                 Context.sender.addIgnoredBrand(brand);
                 if (databaseManager.isWaiting()) {
-                    bot.sendText("something wrong...");
+                    return sendMessage("something wrong...", message.getChatId());
                 }
             }
             return sendMessage("brands ignored!", message.getChatId());
@@ -144,10 +146,10 @@ public class CommandManager {
 
         Command igRmCmd = new Command("ig_rm");
         igRmCmd.setAction(message -> {
-            if (databaseManager.isWaiting()){
+            if (databaseManager.isWaiting()) {
                 return sendMessage("i'm tired! wait about 15 minutes and try again", message.getChatId());
             }
-            String[] ignoredBrands = getLinesWithoutCommand(message.getText(), igRmCmd.getName());
+            String[] ignoredBrands = getLinesWithoutCommand(message.getText(), igRmCmd.getName(), "[\n,]");
             if (ignoredBrands.length == 0)
                 return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
             for (String brand : ignoredBrands) {
@@ -155,7 +157,7 @@ public class CommandManager {
                 databaseManager.removeIgnoredBrand(brand);
                 Context.sender.removeIgnoredBrand(brand);
                 if (databaseManager.isWaiting()) {
-                    bot.sendText("something wrong...");
+                    return sendMessage("something wrong...", message.getChatId());
                 }
             }
             return sendMessage("brands not ignored anymore!", message.getChatId());
@@ -227,6 +229,10 @@ public class CommandManager {
     }
 
     private String[] getLinesWithoutCommand(String string, String command) {
-        return string.replace("/" + command, "").replaceAll("[\\s\n,]", ",").split(",");
+        return getLinesWithoutCommand(string, command, "[\\s\n,]");
+    }
+
+    private String[] getLinesWithoutCommand(String string, String command, String delimiters) {
+        return string.replace("/" + command, "").replaceAll(delimiters, ",").split(",");
     }
 }
