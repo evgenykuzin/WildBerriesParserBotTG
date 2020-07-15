@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import parser.ShopParser;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,23 +37,17 @@ public class SenderTest {
         parsedProduct.setOldPrice(510.0);
         parsedProduct.setDiscountPercent(94.0);
 
-        Product savedProduct = new Product(url);
-        savedProduct.setProductName(productName);
-        savedProduct.setBrandName(brandName);
-        savedProduct.setNewPrice(51.0);
-        savedProduct.setOldPrice(510.0);
-        savedProduct.setDiscountPercent(90.0);
-
-        sender.compareAndUpdateProducts(parsedProduct, savedProduct);
-        Product updatedProduct = null;
+        double savedProductPrice = 51.0;
+        sender.compareAndUpdateProducts(parsedProduct, savedProductPrice);
+        double updatedProductPrice = -1;
         try {
-            updatedProduct = new DatabaseManager().getExistingProductByUrl(parsedProduct.getUrl());
-        } catch (SQLSyntaxErrorException throwables) {
+            updatedProductPrice = new DatabaseManager().getExistingProductPriceByUrl(parsedProduct.getUrl());
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-        Assertions.assertEquals(expectedProduct, updatedProduct);
+        Assertions.assertEquals(expectedProduct.getNewPrice(), updatedProductPrice);
         try {
-            new DatabaseManager().updateProduct(savedProduct);
+            new DatabaseManager().updateProduct(expectedProduct);
         } catch (SQLSyntaxErrorException throwables) {
             throwables.printStackTrace();
         }
