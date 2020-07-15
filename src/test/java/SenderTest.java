@@ -18,7 +18,7 @@ public class SenderTest {
         Bot bot = new Bot(new DatabaseManager(), true);
         ShopParser shopParser = new ShopParser();
         Set<String> linksSet = new HashSet<>();
-        Sender sender = new Sender(bot, shopParser, linksSet, new DatabaseManager());
+        Sender sender = new Sender(bot, shopParser, new DatabaseManager());
         String url = "https://www.wildberries.ru/catalog/7696800/detail.aspx?targetUrl=GP";
         String productName = "Бандана";
         String brandName = "COLORE CALDO /";
