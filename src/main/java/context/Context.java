@@ -38,14 +38,8 @@ public class Context {
     }
 
     public static void restartSender(long time) {
-        long lastCall = System.currentTimeMillis();
         System.out.println("restarting thread Sender");
         sender.interrupt();
-        while (true) {
-            if (System.currentTimeMillis() - lastCall > time) {
-                break;
-            }
-        }
         startSender();
         System.out.println("thread Sender restarted");
 
