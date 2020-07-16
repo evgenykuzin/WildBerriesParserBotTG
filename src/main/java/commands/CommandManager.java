@@ -67,7 +67,8 @@ public class CommandManager {
             Set<String> existing = Context.sender.getCategories();
             for (String url : categories) {
                 if (!url.contains("http")) {
-                    return sendMessage(url + " is not valid url", message.getChatId());
+                     bot.sendText(url + " is not valid url");
+                     continue;
                 }
                 if (existing.contains(url)) {
                     bot.sendText(url + " always exists");
