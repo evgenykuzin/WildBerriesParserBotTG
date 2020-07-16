@@ -1,13 +1,12 @@
 package bot;
 
-import com.mysql.cj.exceptions.ConnectionIsClosedException;
 import database.DatabaseManager;
 import entities.Product;
+import exceptions.DBConnectionException;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import parser.ShopParser;
 
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,23 +28,24 @@ public class Sender extends Thread {
         ignoredBrands = databaseManager.getAllIgnoredBrands();
         try {
             savedProducts = databaseManager.getAllExistingProductsMap();
-        } catch (SQLException throwables) {
+            if (savedProducts.isEmpty()) bot.sendText("products list is empty... try again");
+        } catch (DBConnectionException throwables) {
+            bot.sendText("Connection to database was lost. Wait ~15 minutes");
             throwables.printStackTrace();
         }
         running = Boolean.TRUE;
     }
 
     @Override
-    public void run() throws OutOfMemoryError, ConnectionIsClosedException {
+    public void run() throws OutOfMemoryError {
         System.out.println("restarted");
         bot.sendText("restarted");
         while (true) {
             if (running && !databaseManager.isWaiting()) {
                 if (categories.isEmpty()) {
                     System.out.println("categories is empty(");
-                    bot.sendText("categories is empty(\nuse 'cat_add' command to add categories");
+                    bot.sendText("categories is empty(\nuse 'cat_add' command to add categories\nstopping...");
                     running = Boolean.FALSE;
-                    bot.sendText("stopping...");
                     continue;
                 }
                 for (String url : categories) {
@@ -65,11 +65,6 @@ public class Sender extends Thread {
                         } else {
                             compareAndUpdateProducts(parsedProduct, savedProductPrice);
                         }
-//                        try {
-//                            sleep(5000);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
                         waiting();
                     }
                 }
@@ -92,7 +87,7 @@ public class Sender extends Thread {
         try {
             databaseManager.saveProduct(product);
             savedProducts.put(product.getUrl(), product.getNewPrice());
-        } catch (SQLException throwables) {
+        } catch (DBConnectionException throwables) {
             throwables.printStackTrace();
             return;
         }
@@ -108,7 +103,7 @@ public class Sender extends Thread {
             try {
                 databaseManager.updateProduct(parsedProduct);
                 savedProducts.replace(parsedProduct.getUrl(), parsedProduct.getNewPrice());
-            } catch (SQLException throwables) {
+            } catch (DBConnectionException throwables) {
                 throwables.printStackTrace();
             }
             bot.sendText(parsedProduct.constructMessage());

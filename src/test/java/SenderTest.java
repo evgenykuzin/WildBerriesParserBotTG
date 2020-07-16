@@ -2,13 +2,12 @@ import bot.Bot;
 import bot.Sender;
 import database.DatabaseManager;
 import entities.Product;
+import exceptions.DBConnectionException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import parser.ShopParser;
 
 import java.io.IOException;
-import java.sql.SQLException;
-import java.sql.SQLSyntaxErrorException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,13 +43,13 @@ public class SenderTest {
         double updatedProductPrice = -1;
         try {
             updatedProductPrice = new DatabaseManager().getExistingProductPriceByUrl(parsedProduct.getUrl());
-        } catch (SQLException throwables) {
+        } catch (DBConnectionException throwables) {
             throwables.printStackTrace();
         }
         Assertions.assertEquals(expectedProduct.getNewPrice(), updatedProductPrice);
         try {
             new DatabaseManager().updateProduct(expectedProduct);
-        } catch (SQLException throwables) {
+        } catch (DBConnectionException throwables) {
             throwables.printStackTrace();
         }
     }

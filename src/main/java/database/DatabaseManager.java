@@ -2,6 +2,7 @@ package database;
 
 import com.mysql.cj.exceptions.ConnectionIsClosedException;
 import entities.Product;
+import exceptions.DBConnectionException;
 import properties.PropertiesManager;
 
 import java.sql.*;
@@ -48,7 +49,7 @@ public class DatabaseManager {
         pass = dbProps.getProperty("db.password");
     }
 
-    public double getExistingProductPriceByUrl(String url) throws SQLException {
+    public double getExistingProductPriceByUrl(String url) throws DBConnectionException {
         try {
             PreparedStatement ps = connection.prepareStatement(
                     "SELECT * FROM products WHERE url = ?");
@@ -59,12 +60,14 @@ public class DatabaseManager {
             }
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException throwables) {
             waitingDatabase(reconnectingDBTime);
-            throw new SQLException();
+            throw new DBConnectionException();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
         return -1;
     }
 
-    public Map<String, Double> getAllExistingProductsMap() throws SQLException{
+    public Map<String, Double> getAllExistingProductsMap() throws DBConnectionException{
         Map<String, Double> map = new HashMap<>();
         try {
             ResultSet resultSet = connection.prepareStatement(
@@ -76,12 +79,14 @@ public class DatabaseManager {
             }
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException throwables) {
             waitingDatabase(reconnectingDBTime);
-            throw new SQLException();
+            throw new DBConnectionException();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
         return map;
     }
 
-    public void saveProduct(Product product) throws SQLException {
+    public void saveProduct(Product product) throws DBConnectionException {
         try {
             PreparedStatement ps = connection.prepareStatement(
                     "INSERT INTO products (url, current_price) VALUES (?,?)");
@@ -90,11 +95,13 @@ public class DatabaseManager {
             ps.executeUpdate();
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException throwables) {
             waitingDatabase(reconnectingDBTime);
-            throw new SQLException();
+            throw new DBConnectionException();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
     }
 
-    public void updateProduct(Product product) throws SQLException {
+    public void updateProduct(Product product) throws DBConnectionException {
         try {
             PreparedStatement ps = connection.prepareStatement(
                     "UPDATE products SET " +
@@ -105,7 +112,9 @@ public class DatabaseManager {
             ps.executeUpdate();
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
             waitingDatabase(reconnectingDBTime);
-            throw new SQLException();
+            throw new DBConnectionException();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
     }
 
