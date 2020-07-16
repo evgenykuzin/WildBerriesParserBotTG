@@ -3,15 +3,22 @@ package commands;
 import bot.Bot;
 import context.Context;
 import database.DatabaseManager;
+import exceptions.DBConnectionException;
+import org.json.JSONObject;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class CommandManager {
@@ -71,11 +78,15 @@ public class CommandManager {
                      continue;
                 }
                 if (existing.contains(url)) {
-                    bot.sendText(url + " always exists");
+                    bot.sendText(url + " already exists");
                     continue;
                 }
                 bot.sendText("saving " + url);
-                databaseManager.saveCategory(url);
+                try {
+                    databaseManager.saveCategory(url);
+                } catch (DBConnectionException e) {
+                    e.printStackTrace();
+                }
                 Context.sender.addCategory(url);
                 if (databaseManager.isWaiting()) {
                     return sendMessage("something wrong...", message.getChatId());
@@ -95,7 +106,11 @@ public class CommandManager {
                 return sendMessage("please, enter a urls of categories you need. Split by spaces.", message.getChatId());
             for (String url : categories) {
                 bot.sendText("removing " + url);
-                databaseManager.removeCategory(url);
+                try {
+                    databaseManager.removeCategory(url);
+                } catch (DBConnectionException e) {
+                    e.printStackTrace();
+                }
                 if (databaseManager.isWaiting()) {
                     return sendMessage("something wrong...", message.getChatId());
                 }
@@ -103,6 +118,28 @@ public class CommandManager {
             return sendMessage("categories removed!", message.getChatId());
         });
         addCommand(catRmCmd);
+
+        Command catChCmd = new Command("cat_ch");
+        catRmCmd.setAction(message -> {
+            if (!message.hasDocument()) return sendMessage("Failed( You need to upload a file!", message.getChatId());
+            List<String> categories = getLinesFromDocument(message.getDocument());
+            if (categories.isEmpty()) {
+                return sendMessage("please, write a urls of categories you need in the file", message.getChatId());
+            }
+            for (String url : categories) {
+                if (!Context.sender.getCategories().contains(url)) {
+                    try {
+                        databaseManager.saveCategory(url);
+                        Context.sender.addCategory(url);
+                    } catch (DBConnectionException e) {
+                        bot.sendText("failed to save " + url);
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return sendMessage("categories list changed!", message.getChatId());
+        });
+        addCommand(catChCmd);
 
         Command igListCmd = new Command("ig_list");
         igListCmd.setAction(message -> {
@@ -135,7 +172,11 @@ public class CommandManager {
                     continue;
                 }
                 bot.sendText("saving " + brand + " to ignore list");
-                databaseManager.saveIgnoredBrand(brand);
+                try {
+                    databaseManager.saveIgnoredBrand(brand);
+                } catch (DBConnectionException e) {
+                    e.printStackTrace();
+                }
                 Context.sender.addIgnoredBrand(brand);
                 if (databaseManager.isWaiting()) {
                     return sendMessage("something wrong...", message.getChatId());
@@ -155,7 +196,11 @@ public class CommandManager {
                 return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
             for (String brand : ignoredBrands) {
                 bot.sendText("removing " + brand + " from ignore list");
-                databaseManager.removeIgnoredBrand(brand);
+                try {
+                    databaseManager.removeIgnoredBrand(brand);
+                } catch (DBConnectionException e) {
+                    e.printStackTrace();
+                }
                 Context.sender.removeIgnoredBrand(brand);
                 if (databaseManager.isWaiting()) {
                     return sendMessage("something wrong...", message.getChatId());
@@ -164,6 +209,28 @@ public class CommandManager {
             return sendMessage("brands not ignored anymore!", message.getChatId());
         });
         addCommand(igRmCmd);
+
+        Command igChCmd = new Command("ig_ch");
+        catRmCmd.setAction(message -> {
+            if (!message.hasDocument()) return sendMessage("Failed( You need to upload a file!", message.getChatId());
+            List<String> ignoredBrands = getLinesFromDocument(message.getDocument());
+            if (ignoredBrands.isEmpty()) {
+                return sendMessage("please, write the names of brands, you want to ignore, in the file", message.getChatId());
+            }
+            for (String brand : ignoredBrands) {
+                if (!Context.sender.getIgnoredBrands().contains(brand)) {
+                    try {
+                        databaseManager.saveIgnoredBrand(brand);
+                        Context.sender.addIgnoredBrand(brand);
+                    } catch (DBConnectionException e) {
+                        bot.sendText("failed to save " + brand);
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return sendMessage("ignored brands list changed!", message.getChatId());
+        });
+        addCommand(igChCmd);
 
         Command preloadCmd = new Command("preload");
         preloadCmd.setAction(message -> {
@@ -235,5 +302,44 @@ public class CommandManager {
 
     private String[] getLinesWithoutCommand(String string, String command, String delimiters) {
         return string.replace("/" + command + " ", "").replaceAll(delimiters, ",").split(",");
+    }
+
+    private List<String> getLinesFromDocument(Document document) {
+        File file = null;
+        try {
+            file = loadFileFromInternet(document.getFileName().replace(".txt", ""),
+                    document.getFileId(), bot.getBotToken());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (file != null) {
+            Path path = file.toPath();
+            try {
+                return Files.readAllLines(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        bot.sendText("error uploading file!");
+        return Collections.emptyList();
+    }
+
+    public static File loadFileFromInternet(String file_name, String file_id, String token) throws IOException {
+        URL url = new URL("https://api.telegram.org/bot"+token+"/getFile?file_id="+file_id);
+        BufferedReader in = new BufferedReader(new InputStreamReader( url.openStream()));
+        String res = in.readLine();
+        JSONObject jresult = new JSONObject(res);
+        JSONObject path = jresult.getJSONObject("result");
+        String file_path = path.getString("file_path");
+        URL downoload = new URL("https://api.telegram.org/file/bot" + token + "/" + file_path);
+        File file = Files.createTempFile(file_name, ".txt").toFile();
+        FileOutputStream fos = new FileOutputStream(file);
+        System.out.println("Start upload");
+        ReadableByteChannel rbc = Channels.newChannel(downoload.openStream());
+        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+        fos.close();
+        rbc.close();
+        System.out.println("Uploaded!");
+        return file;
     }
 }

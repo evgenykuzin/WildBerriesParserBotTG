@@ -1,8 +1,10 @@
 package database;
 
 import com.mysql.cj.exceptions.ConnectionIsClosedException;
+import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 import entities.Product;
 import exceptions.DBConnectionException;
+import org.mapdb.DB;
 import properties.PropertiesManager;
 
 import java.sql.*;
@@ -58,7 +60,7 @@ public class DatabaseManager {
             if (resultSet.next()) {
                 return resultSet.getDouble("current_price");
             }
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException throwables) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
             waitingDatabase(reconnectingDBTime);
             throw new DBConnectionException();
         } catch (SQLException throwables) {
@@ -77,7 +79,7 @@ public class DatabaseManager {
                 double price = resultSet.getDouble("current_price");
                 map.put(url, price);
             }
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException throwables) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
             waitingDatabase(reconnectingDBTime);
             throw new DBConnectionException();
         } catch (SQLException throwables) {
@@ -93,7 +95,7 @@ public class DatabaseManager {
             ps.setString(1, product.getUrl());
             ps.setString(2, String.valueOf(product.getNewPrice()));
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException throwables) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
             waitingDatabase(reconnectingDBTime);
             throw new DBConnectionException();
         } catch (SQLException throwables) {
@@ -110,7 +112,7 @@ public class DatabaseManager {
             ps.setDouble(1, product.getNewPrice());
             ps.setString(2, product.getUrl());
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
             waitingDatabase(reconnectingDBTime);
             throw new DBConnectionException();
         } catch (SQLException throwables) {
@@ -125,7 +127,7 @@ public class DatabaseManager {
             while (resultSet.next()) {
                 set.add(constructProduct(resultSet));
             }
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
             waitingDatabase(reconnectingDBTime);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -149,71 +151,71 @@ public class DatabaseManager {
         return product;
     }
 
-    public Set<String> getAllIgnoredBrands() {
+    public Set<String> getAllIgnoredBrands() throws DBConnectionException {
         return getAll("ignore_brands", "brand");
     }
 
-    public void saveIgnoredBrand(String brand) {
+    public void saveIgnoredBrand(String brand) throws DBConnectionException {
         try {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO ignore_brands (brand) values(?)");
             ps.setString(1, brand);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(reconnectingDBTime);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
+            throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
-    public void removeIgnoredBrand(String brand) {
+    public void removeIgnoredBrand(String brand) throws DBConnectionException {
         try {
             PreparedStatement ps = connection.prepareStatement("DELETE FROM ignore_brands WHERE brand = ?");
             ps.setString(1, brand);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(reconnectingDBTime);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
+            throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
-    public Set<String> getAllCategories() {
+    public Set<String> getAllCategories() throws DBConnectionException{
         return getAll("categories", "url");
     }
 
-    public void saveCategory(String url) {
+    public void saveCategory(String url) throws DBConnectionException {
         try {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO categories (url) values(?)");
             ps.setString(1, url);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(reconnectingDBTime);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
+            throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
-    public void removeCategory(String url) {
+    public void removeCategory(String url) throws DBConnectionException {
         try {
             PreparedStatement ps = connection.prepareStatement("DELETE FROM categories WHERE url = ?");
             ps.setString(1, url);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(reconnectingDBTime);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
+            throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
-    private Set<String> getAll(String table, String column) {
+    private Set<String> getAll(String table, String column) throws DBConnectionException {
         Set<String> set = new HashSet<>();
         try {
             ResultSet resultSet = connection.prepareStatement("SELECT " + column + " FROM " + table).executeQuery();
             while (resultSet.next()) {
                 set.add(resultSet.getString(column));
             }
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException ssee) {
-            waitingDatabase(reconnectingDBTime);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
+            throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }

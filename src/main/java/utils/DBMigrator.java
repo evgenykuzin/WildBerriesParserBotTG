@@ -1,6 +1,7 @@
 package utils;
 
 import database.DatabaseManager;
+import exceptions.DBConnectionException;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -50,7 +51,11 @@ public class DBMigrator {
         Collection<String> lines = loader.load();
         lines.forEach(line -> {
             if (!existing.contains(line)) {
-                saver.save(line);
+                try {
+                    saver.save(line);
+                } catch (DBConnectionException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -98,7 +103,7 @@ public class DBMigrator {
     }
 
     private interface Saver {
-        void save(String saved);
+        void save(String saved) throws DBConnectionException;
     }
 
     private interface Loader<T> {

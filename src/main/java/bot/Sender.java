@@ -7,16 +7,17 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import parser.ShopParser;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Sender extends Thread {
     private final Bot bot;
     private final ShopParser shopParser;
-    private final Set<String> categories;
+    private Set<String> categories;
     private final DatabaseManager databaseManager;
-    private final Set<String> ignoredBrands;
+    private Set<String> ignoredBrands;
     private Map<String, Double> savedProducts;
+    private final List<Product> backupSavedProducts;
+    private final List<Product> backupUpdatedProducts;
     private volatile Boolean running;
     private volatile long lastCall = 0;
 
@@ -24,13 +25,17 @@ public class Sender extends Thread {
         this.bot = bot;
         this.shopParser = shopParser;
         this.databaseManager = databaseManager;
-        categories = databaseManager.getAllCategories();
-        ignoredBrands = databaseManager.getAllIgnoredBrands();
+        backupSavedProducts = new ArrayList<>(20);
+        backupUpdatedProducts = new ArrayList<>(20);
         try {
+            categories = databaseManager.getAllCategories();
+            ignoredBrands = databaseManager.getAllIgnoredBrands();
             savedProducts = databaseManager.getAllExistingProductsMap();
-            if (savedProducts.isEmpty()) bot.sendText("products list is empty... try again");
+            if (savedProducts.isEmpty()) bot.sendText("products list is empty...");
+            if (savedProducts.isEmpty()) bot.sendText("ignored brands list is empty...");
+            if (savedProducts.isEmpty()) bot.sendText("categories list is empty...");
         } catch (DBConnectionException throwables) {
-            bot.sendText("Connection to database was lost. Wait ~15 minutes");
+            bot.sendText("connection problem... failed to load data from database");
             throwables.printStackTrace();
         }
         running = Boolean.TRUE;
@@ -61,7 +66,7 @@ public class Sender extends Thread {
                         if (parsedProduct == null) continue;
                         Double savedProductPrice = savedProducts.get(parsedProduct.getUrl());
                         if (savedProductPrice == null) {
-                            saveProduct(parsedProduct);
+                            saveProductToDatabase(parsedProduct);
                         } else {
                             compareAndUpdateProducts(parsedProduct, savedProductPrice);
                         }
@@ -83,15 +88,26 @@ public class Sender extends Thread {
         }
     }
 
-    private void saveProduct(Product product) {
+    private void saveProductToDatabase(Product product) {
         try {
-            databaseManager.saveProduct(product);
-            savedProducts.put(product.getUrl(), product.getNewPrice());
+            saveProduct(product);
+                for (Product p : backupSavedProducts) {
+                    saveProduct(p);
+                    backupSavedProducts.remove(p);
+                }
+
         } catch (DBConnectionException throwables) {
+            backupSavedProducts.add(product);
+            bot.sendText("connection problem... failed to save");
             throwables.printStackTrace();
-            return;
+        } finally {
+            bot.sendText(product.constructMessage());
         }
-        bot.sendText(product.constructMessage());
+    }
+
+    private void saveProduct(Product product) throws DBConnectionException {
+        databaseManager.saveProduct(product);
+        savedProducts.put(product.getUrl(), product.getNewPrice());
     }
 
     public void compareAndUpdateProducts(Product parsedProduct, double savedProductPrice) {
@@ -101,13 +117,24 @@ public class Sender extends Thread {
             parsedProduct.setOldPrice(savedProductPrice);
             parsedProduct.setDiscountPercent(newDiscountPercent);
             try {
-                databaseManager.updateProduct(parsedProduct);
-                savedProducts.replace(parsedProduct.getUrl(), parsedProduct.getNewPrice());
+                updateProduct(parsedProduct);
+                for (Product p : backupUpdatedProducts) {
+                    updateProduct(p);
+                    backupUpdatedProducts.remove(p);
+                }
             } catch (DBConnectionException throwables) {
+                backupUpdatedProducts.add(parsedProduct);
+                bot.sendText("connection problem... failed to update");
                 throwables.printStackTrace();
+            } finally {
+                bot.sendText(parsedProduct.constructMessage());
             }
-            bot.sendText(parsedProduct.constructMessage());
         }
+    }
+
+    private void updateProduct(Product product) throws DBConnectionException {
+        databaseManager.updateProduct(product);
+        savedProducts.replace(product.getUrl(), product.getNewPrice());
     }
 
     public void addCategory(String brand) {
