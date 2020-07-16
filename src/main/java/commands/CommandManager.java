@@ -131,7 +131,7 @@ public class CommandManager {
             for (String brand : ignoredBrands) {
                 if (brand.isEmpty() || brand.matches("[\\s\n,]")) continue;
                 if (existing.contains(brand)) {
-                    bot.sendText(brand + "always ignored");
+                    bot.sendText(brand + "already ignored");
                     continue;
                 }
                 bot.sendText("saving " + brand + " to ignore list");
@@ -234,6 +234,6 @@ public class CommandManager {
     }
 
     private String[] getLinesWithoutCommand(String string, String command, String delimiters) {
-        return string.replace("/" + command, "").replaceAll(delimiters, ",").split(",");
+        return string.replace("/" + command + " ", "").replaceAll(delimiters, ",").split(",");
     }
 }
