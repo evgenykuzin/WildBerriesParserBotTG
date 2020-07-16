@@ -13,5 +13,12 @@
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
       <jdbc-url>jdbc:mysql://localhost:3306/test?serverTimezone=UTC</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="a0455578_wildeberriesDB@a0455578.xsph.ru" uuid="9f5ed1e9-43d6-4b02-85a7-b0df5fe72d6b">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://a0455578.xsph.ru:3306/a0455578_wildeberriesDB?serverTimezone=UTC</jdbc-url>
+      <time-zone>UTC</time-zone>
+    </data-source>
   </component>
 </project>
