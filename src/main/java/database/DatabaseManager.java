@@ -4,14 +4,13 @@ import com.mysql.cj.exceptions.ConnectionIsClosedException;
 import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 import entities.Product;
 import exceptions.DBConnectionException;
-import org.mapdb.DB;
 import properties.PropertiesManager;
 
 import java.sql.*;
 import java.util.*;
 
 public class DatabaseManager {
-    private final Connection connection;
+    private Connection connection;
     private String url;
     private String name;
     private String pass;
@@ -226,6 +225,10 @@ public class DatabaseManager {
             throwables.printStackTrace();
         }
         return set;
+    }
+
+    public void reconnect() {
+        connection = initConnection(url, name, pass);
     }
 
     public void waitingDatabase(long time) {

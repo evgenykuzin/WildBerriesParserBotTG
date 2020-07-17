@@ -22,30 +22,15 @@ import java.util.List;
 import java.util.Set;
 
 public class CommandManager {
-    private ArrayList<Command> commands;
-    private Buttons buttons;
-    private Bot bot;
-    private DatabaseManager databaseManager;
+    private final ArrayList<Command> commands;
+    private final Bot bot;
     public final static String HELP_TEXT = "i am not useless!";
 
     public CommandManager(Bot bot, DatabaseManager databaseManager) {
         this.bot = bot;
-        this.databaseManager = databaseManager;
         commands = new ArrayList<>();
-        buttons = new Buttons();
-        buttons.createUserKeyboard(this);
 
         addCommand(new Command("help", HELP_TEXT));
-
-        Command seenCmd = new Command("seen");
-        seenCmd.setAction(message -> {
-            if (message.hasText()) {
-                String productUrl = message.getText().replace(seenCmd.getName(), "");
-                //TODO
-            }
-            return sendMessage("uhh...don't know...", message.getChatId());
-        });
-        addCommand(seenCmd);
 
         Command catListCmd = new Command("cat_list");
         catListCmd.setAction(message -> {
@@ -85,6 +70,7 @@ public class CommandManager {
                 try {
                     databaseManager.saveCategory(url);
                 } catch (DBConnectionException e) {
+                    databaseManager.reconnect();
                     e.printStackTrace();
                 }
                 Context.sender.addCategory(url);
@@ -109,6 +95,7 @@ public class CommandManager {
                 try {
                     databaseManager.removeCategory(url);
                 } catch (DBConnectionException e) {
+                    databaseManager.reconnect();
                     e.printStackTrace();
                 }
                 if (databaseManager.isWaiting()) {
@@ -133,6 +120,7 @@ public class CommandManager {
                         Context.sender.addCategory(url);
                     } catch (DBConnectionException e) {
                         bot.sendText("failed to save " + url);
+                        databaseManager.reconnect();
                         e.printStackTrace();
                     }
                 }
@@ -166,6 +154,7 @@ public class CommandManager {
                 return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
             Set<String> existing = Context.sender.getIgnoredBrands();
             for (String brand : ignoredBrands) {
+                brand = brand.replaceFirst(" ", "");
                 if (brand.isEmpty() || brand.matches("[\\s\n,]")) continue;
                 if (existing.contains(brand)) {
                     bot.sendText(brand + "already ignored");
@@ -175,6 +164,7 @@ public class CommandManager {
                 try {
                     databaseManager.saveIgnoredBrand(brand);
                 } catch (DBConnectionException e) {
+                    databaseManager.reconnect();
                     e.printStackTrace();
                 }
                 Context.sender.addIgnoredBrand(brand);
@@ -195,10 +185,12 @@ public class CommandManager {
             if (ignoredBrands.length == 0)
                 return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
             for (String brand : ignoredBrands) {
+                brand = brand.replaceFirst(" ", "");
                 bot.sendText("removing " + brand + " from ignore list");
                 try {
                     databaseManager.removeIgnoredBrand(brand);
                 } catch (DBConnectionException e) {
+                    databaseManager.reconnect();
                     e.printStackTrace();
                 }
                 Context.sender.removeIgnoredBrand(brand);
@@ -224,6 +216,7 @@ public class CommandManager {
                         Context.sender.addIgnoredBrand(brand);
                     } catch (DBConnectionException e) {
                         bot.sendText("failed to save " + brand);
+                        databaseManager.reconnect();
                         e.printStackTrace();
                     }
                 }
@@ -231,22 +224,6 @@ public class CommandManager {
             return sendMessage("ignored brands list changed!", message.getChatId());
         });
         addCommand(igChCmd);
-
-        Command preloadCmd = new Command("preload");
-        preloadCmd.setAction(message -> {
-
-            //TODO
-            return sendMessage("mmm...what??", message.getChatId());
-        });
-        addCommand(preloadCmd);
-
-        Command configCmd = new Command("config");
-        configCmd.setAction(message -> {
-
-            //TODO
-            return sendMessage("aaa... config?", message.getChatId()); //заменить на bot.getChatId;
-        });
-        addCommand(configCmd);
     }
 
     public void addCommand(Command command) {

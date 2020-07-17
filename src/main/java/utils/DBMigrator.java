@@ -54,6 +54,7 @@ public class DBMigrator {
                 try {
                     saver.save(line);
                 } catch (DBConnectionException e) {
+                    databaseManager.reconnect();
                     e.printStackTrace();
                 }
             }

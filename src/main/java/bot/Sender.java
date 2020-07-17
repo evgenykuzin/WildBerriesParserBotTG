@@ -37,6 +37,7 @@ public class Sender extends Thread {
             if (savedProducts.isEmpty()) bot.sendText("categories list is empty...");
         } catch (DBConnectionException throwables) {
             bot.sendText("connection problem... failed to load data from database");
+            databaseManager.reconnect();
             throwables.printStackTrace();
         }
         running = Boolean.TRUE;
@@ -98,6 +99,7 @@ public class Sender extends Thread {
         } catch (DBConnectionException throwables) {
             backupSavedProducts.offer(product);
             bot.sendText("connection problem... failed to save");
+            databaseManager.reconnect();
             throwables.printStackTrace();
         } finally {
             bot.sendText(product.constructMessage());
@@ -123,6 +125,7 @@ public class Sender extends Thread {
             } catch (DBConnectionException throwables) {
                 backupUpdatedProducts.offer(parsedProduct);
                 bot.sendText("connection problem... failed to update");
+                databaseManager.reconnect();
                 throwables.printStackTrace();
             } finally {
                 bot.sendText(parsedProduct.constructMessage());
