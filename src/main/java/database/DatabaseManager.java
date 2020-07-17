@@ -14,12 +14,7 @@ public class DatabaseManager {
     private String url;
     private String name;
     private String pass;
-    private static final long reconnectingDBTime = 900000;
-    private long waiting;
-    private long lastCall;
     public DatabaseManager() {
-        waiting = 0;
-        lastCall = 0;
         loadProps();
         connection = initConnection(url, name, pass);
     }
@@ -48,24 +43,6 @@ public class DatabaseManager {
         url = dbProps.getProperty("db.url");
         name = dbProps.getProperty("db.name");
         pass = dbProps.getProperty("db.password");
-    }
-
-    public double getExistingProductPriceByUrl(String url) throws DBConnectionException {
-        try {
-            PreparedStatement ps = connection.prepareStatement(
-                    "SELECT * FROM products WHERE url = ?");
-            ps.setString(1, url);
-            ResultSet resultSet = ps.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getDouble("current_price");
-            }
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
-            throwables.printStackTrace();
-            throw new DBConnectionException();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return -1;
     }
 
     public Map<String, Double> getAllExistingProductsMap() throws DBConnectionException{
@@ -120,38 +97,6 @@ public class DatabaseManager {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-    }
-
-    public Set<Product> getAllProducts() throws DBConnectionException {
-        Set<Product> set = new HashSet<>();
-        try {
-            ResultSet resultSet = connection.prepareStatement("SELECT * FROM products").executeQuery();
-            while (resultSet.next()) {
-                set.add(constructProduct(resultSet));
-            }
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
-            throwables.printStackTrace();
-            throw new DBConnectionException();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return set;
-    }
-
-    private Product constructProduct(ResultSet resultSet) throws SQLException {
-        String url = resultSet.getString("url");
-        String productName = resultSet.getString("product_name");
-        String brandName = resultSet.getString("brand_name");
-        double oldPrice = resultSet.getDouble("old_price");
-        double currentPrice = resultSet.getDouble("current_price");
-        double discountPercent = resultSet.getDouble("discount_percent");
-        Product product = new Product(url);
-        product.setProductName(productName);
-        product.setBrandName(brandName);
-        product.setNewPrice(currentPrice);
-        product.setOldPrice(oldPrice);
-        product.setDiscountPercent(discountPercent);
-        return product;
     }
 
     public Set<String> getAllIgnoredBrands() throws DBConnectionException {
@@ -232,24 +177,6 @@ public class DatabaseManager {
 
     public void reconnect() {
         connection = initConnection(url, name, pass);
-    }
-
-    public void waitingDatabase(long time) {
-        if (!isWaiting()) {
-            System.out.println("waiting database...");
-            waiting = time;
-            lastCall = System.currentTimeMillis();
-        }
-    }
-
-    public boolean isWaiting() {
-        if (System.currentTimeMillis() - lastCall > waiting) {
-            lastCall = 0;
-            waiting = 0;
-            return false;
-        } else {
-            return true;
-        }
     }
 
 }

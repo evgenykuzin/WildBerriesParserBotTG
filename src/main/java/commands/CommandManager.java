@@ -49,9 +49,6 @@ public class CommandManager {
 
         Command catAddCmd = new Command("cat_add");
         catAddCmd.setAction(message -> {
-            if (databaseManager.isWaiting()) {
-                return sendMessage("I'm tired! wait about 15 minutes and try again", message.getChatId());
-            }
             String[] categories = getLinesWithoutCommand(message.getText(), catAddCmd.getName());
             if (categories.length == 0) {
                 return sendMessage("please, enter a urls of categories you need. Split by spaces.", message.getChatId());
@@ -69,14 +66,13 @@ public class CommandManager {
                 bot.sendText("saving " + url);
                 try {
                     databaseManager.saveCategory(url);
+                    Context.sender.addCategory(url);
                 } catch (DBConnectionException e) {
                     databaseManager.reconnect();
+                    bot.sendText("failed to save category " + url);
                     e.printStackTrace();
                 }
-                Context.sender.addCategory(url);
-                if (databaseManager.isWaiting()) {
-                    return sendMessage("something wrong...", message.getChatId());
-                }
+
             }
             return sendMessage("categories saved!", message.getChatId());
         });
@@ -84,9 +80,6 @@ public class CommandManager {
 
         Command catRmCmd = new Command("cat_rm");
         catRmCmd.setAction(message -> {
-            if (databaseManager.isWaiting()) {
-                return sendMessage("i'm tired! wait about 15 minutes and try again", message.getChatId());
-            }
             String[] categories = getLinesWithoutCommand(message.getText(), catRmCmd.getName());
             if (categories.length == 0)
                 return sendMessage("please, enter a urls of categories you need. Split by spaces.", message.getChatId());
@@ -94,12 +87,10 @@ public class CommandManager {
                 bot.sendText("removing " + url);
                 try {
                     databaseManager.removeCategory(url);
+                    Context.sender.removeCategory(url);
                 } catch (DBConnectionException e) {
                     databaseManager.reconnect();
-                    e.printStackTrace();
-                }
-                if (databaseManager.isWaiting()) {
-                    return sendMessage("something wrong...", message.getChatId());
+                    bot.sendText("failed to remove category " + url);
                 }
             }
             return sendMessage("categories removed!", message.getChatId());
@@ -119,9 +110,8 @@ public class CommandManager {
                         databaseManager.saveCategory(url);
                         Context.sender.addCategory(url);
                     } catch (DBConnectionException e) {
-                        bot.sendText("failed to save " + url);
+                        bot.sendText("failed to save category " + url);
                         databaseManager.reconnect();
-                        e.printStackTrace();
                     }
                 }
             }
@@ -146,9 +136,6 @@ public class CommandManager {
 
         Command igAddCmd = new Command("ig_add");
         igAddCmd.setAction(message -> {
-            if (databaseManager.isWaiting()) {
-                return sendMessage("i'm tired! wait about 15 minutes and try again", message.getChatId());
-            }
             String[] ignoredBrands = getLinesWithoutCommand(message.getText(), igAddCmd.getName(), "[\n,]");
             if (ignoredBrands.length == 0)
                 return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
@@ -163,14 +150,12 @@ public class CommandManager {
                 bot.sendText("saving " + brand + " to ignore list");
                 try {
                     databaseManager.saveIgnoredBrand(brand);
+                    Context.sender.addIgnoredBrand(brand);
                 } catch (DBConnectionException e) {
                     databaseManager.reconnect();
-                    e.printStackTrace();
+                    bot.sendText("failed to save ignored brand " + brand);
                 }
-                Context.sender.addIgnoredBrand(brand);
-                if (databaseManager.isWaiting()) {
-                    return sendMessage("something wrong...", message.getChatId());
-                }
+
             }
             return sendMessage("brands ignored!", message.getChatId());
         });
@@ -178,9 +163,6 @@ public class CommandManager {
 
         Command igRmCmd = new Command("ig_rm");
         igRmCmd.setAction(message -> {
-            if (databaseManager.isWaiting()) {
-                return sendMessage("i'm tired! wait about 15 minutes and try again", message.getChatId());
-            }
             String[] ignoredBrands = getLinesWithoutCommand(message.getText(), igRmCmd.getName(), "[\n,]");
             if (ignoredBrands.length == 0)
                 return sendMessage("please, enter a brand names you need. Split by spaces.", message.getChatId());
@@ -189,13 +171,10 @@ public class CommandManager {
                 bot.sendText("removing " + brand + " from ignore list");
                 try {
                     databaseManager.removeIgnoredBrand(brand);
+                    Context.sender.removeIgnoredBrand(brand);
                 } catch (DBConnectionException e) {
                     databaseManager.reconnect();
-                    e.printStackTrace();
-                }
-                Context.sender.removeIgnoredBrand(brand);
-                if (databaseManager.isWaiting()) {
-                    return sendMessage("something wrong...", message.getChatId());
+                    bot.sendText("failed to remove ignored brand " + brand);
                 }
             }
             return sendMessage("brands not ignored anymore!", message.getChatId());
@@ -215,7 +194,7 @@ public class CommandManager {
                         databaseManager.saveIgnoredBrand(brand);
                         Context.sender.addIgnoredBrand(brand);
                     } catch (DBConnectionException e) {
-                        bot.sendText("failed to save " + brand);
+                        bot.sendText("failed to save ignored brand " + brand);
                         databaseManager.reconnect();
                         e.printStackTrace();
                     }

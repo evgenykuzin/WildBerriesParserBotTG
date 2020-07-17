@@ -5,7 +5,6 @@ import bot.Sender;
 import database.DatabaseManager;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import parser.ShopParser;
 
@@ -29,7 +28,7 @@ public class Context {
 
     public static Sender startSender() {
         try {
-            sender = new Sender(bot, shopParser, databaseManager);
+            sender = sender(bot, shopParser, databaseManager);
             sender.run();
             System.out.println("thread Sender restarted");
         } catch (OutOfMemoryError throwable) {

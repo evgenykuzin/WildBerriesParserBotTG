@@ -1,7 +1,7 @@
 import context.Context;
 
 public class App {
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         Context.setSender();
         Context.startSender();
     }

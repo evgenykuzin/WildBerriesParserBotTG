@@ -1,7 +1,6 @@
 package parser;
 
 import com.google.common.base.CharMatcher;
-import context.Context;
 import entities.Product;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -10,12 +9,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
 
 public class ShopParser {
-    Set<String> linksSet;
 
     public ShopParser(){}
 
@@ -66,14 +63,6 @@ public class ShopParser {
         } catch (NumberFormatException ignored) {
             return -1;
         }
-    }
-
-    public Set<String> getLinksSet() {
-        return linksSet;
-    }
-
-    public void setLinksSet(Set<String> linksSet) {
-        this.linksSet = linksSet;
     }
 
 }

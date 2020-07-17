@@ -151,11 +151,11 @@ public class Sender extends Thread {
     }
 
     public void addCategory(String brand) {
-        ignoredBrands.add(brand);
+        categories.add(brand);
     }
 
     public void removeCategory(String brand) {
-        ignoredBrands.remove(brand);
+        categories.remove(brand);
     }
 
     public Set<String> getCategories() {

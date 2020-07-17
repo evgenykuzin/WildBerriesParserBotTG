@@ -4,11 +4,8 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
-import java.sql.SQLSyntaxErrorException;
-
-
 public class Command {
-    private String name;
+    private final String name;
     private ActionSetter actionSetter;
 
     public Command(String name) {

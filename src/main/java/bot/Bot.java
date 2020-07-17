@@ -56,7 +56,6 @@ public class Bot extends TelegramLongPollingBot {
             } else if (text.equals("/stop")) {
                 sendText("stopping...");
                 sender.setRunning(Boolean.FALSE);
-                sender.interrupt();
             }
             for (Command command : commandManager.getCommands()) {
                 if (text.contains("/" + command.getName())) {
