@@ -273,6 +273,8 @@ public class CommandManager {
         if (fileName.contains("categories")) {
             try {
                 Context.databaseManager.clearCategories();
+                Context.sender.getCategories().clear();
+                System.out.println("categories cleared");
             } catch (DBConnectionException e) {
                 e.printStackTrace();
             }
@@ -282,6 +284,8 @@ public class CommandManager {
         } else if (fileName.contains("ignored-brands")) {
             try {
                 Context.databaseManager.clearIgnoredBrands();
+                Context.sender.getIgnoredBrands().clear();
+                System.out.println("ignored brands cleared");
             } catch (DBConnectionException e) {
                 e.printStackTrace();
             }
