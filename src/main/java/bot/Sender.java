@@ -92,10 +92,12 @@ public class Sender extends Thread {
 
     private void saveProductToDatabase(Product product) {
         try {
-            saveProduct(product);
-                while (!backupSavedProducts.isEmpty()) {
-                    saveProduct(backupSavedProducts.poll());
-                }
+            if (!backupSavedProducts.contains(product)) {
+                saveProduct(product);
+            }
+            while (!backupSavedProducts.isEmpty()) {
+                saveProduct(backupSavedProducts.poll());
+            }
         } catch (DBConnectionException throwables) {
             backupSavedProducts.offer(product);
             bot.sendText("connection problem... failed to save");
@@ -118,7 +120,9 @@ public class Sender extends Thread {
             parsedProduct.setOldPrice(savedProductPrice);
             parsedProduct.setDiscountPercent(newDiscountPercent);
             try {
-                updateProduct(parsedProduct);
+                if (!backupUpdatedProducts.contains(parsedProduct)) {
+                    updateProduct(parsedProduct);
+                }
                 while (!backupUpdatedProducts.isEmpty()) {
                     updateProduct(backupUpdatedProducts.poll());
                 }
