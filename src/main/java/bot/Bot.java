@@ -51,6 +51,7 @@ public class Bot extends TelegramLongPollingBot {
             String text = message.getText();
             if (text.equals("/start")) {
                 sendText("start parsing...");
+                sender = Context.restartSender(0);
                 sender.setRunning(Boolean.TRUE);
             } else if (text.equals("/stop")) {
                 sendText("stopping...");
