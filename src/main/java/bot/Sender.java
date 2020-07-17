@@ -96,18 +96,26 @@ public class Sender extends Thread {
         }
     }
 
+    public void backup() throws DBConnectionException, SQLIntegrityConstraintViolationException {
+        while (!backupSavedProducts.isEmpty()) {
+            Product p = backupSavedProducts.poll();
+            saveProduct(p);
+            System.out.println("product " + p + " saved from backup");
+        }
+        while (!backupUpdatedProducts.isEmpty()) {
+            Product p = backupUpdatedProducts.poll();
+            updateProduct(p);
+            System.out.println("product " + p + " updated from backup");
+        }
+    }
+
     private void saveProductToDatabase(Product product) {
         boolean duplicate = false;
         try {
             saveProduct(product);
-            while (!backupSavedProducts.isEmpty()) {
-                Product p = backupSavedProducts.poll();
-                if (p.equals(product)) continue;
-                saveProduct(p);
-                System.out.println("product " + p + " saved from backup");
-            }
+            backup();
         } catch (DBConnectionException throwables) {
-            if (!backupSavedProducts.contains(product)){
+            if (!backupSavedProducts.contains(product)) {
                 backupSavedProducts.offer(product);
             }
             //bot.sendText("connection problem... failed to save");
@@ -135,20 +143,17 @@ public class Sender extends Thread {
             parsedProduct.setDiscountPercent(newDiscountPercent);
             try {
                 updateProduct(parsedProduct);
-                while (!backupUpdatedProducts.isEmpty()) {
-                    Product p = backupUpdatedProducts.poll();
-                    if (p.equals(parsedProduct)) continue;
-                    updateProduct(p);
-                    System.out.println("product " + p + " updated from backup");
-                }
+                backup();
             } catch (DBConnectionException throwables) {
-                if (!backupUpdatedProducts.contains(parsedProduct)){
+                if (!backupUpdatedProducts.contains(parsedProduct)) {
                     backupUpdatedProducts.offer(parsedProduct);
                 }
                 //bot.sendText("connection problem... failed to update");
                 System.out.println("connection problem... failed to update product " + parsedProduct);
                 databaseManager.reconnect();
                 throwables.printStackTrace();
+            } catch (SQLIntegrityConstraintViolationException sicve) {
+                sicve.printStackTrace();
             } finally {
                 bot.sendText(parsedProduct.constructMessage());
             }

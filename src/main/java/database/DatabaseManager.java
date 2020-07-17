@@ -129,6 +129,30 @@ public class DatabaseManager {
         }
     }
 
+    public void clearIgnoredBrands() throws DBConnectionException {
+        try {
+            PreparedStatement ps = connection.prepareStatement("TRUNCATE TABLE ignore_brands");
+            ps.executeUpdate();
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
+            throwables.printStackTrace();
+            throw new DBConnectionException();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void clearCategories() throws DBConnectionException {
+        try {
+            PreparedStatement ps = connection.prepareStatement("TRUNCATE TABLE categories");
+            ps.executeUpdate();
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
+            throwables.printStackTrace();
+            throw new DBConnectionException();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
     public Set<String> getAllCategories() throws DBConnectionException{
         return getAll("categories", "url");
     }

@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="herokuDB" uuid="5c450dd2-7e0f-4c90-b97f-36dedc5107dd">
-      <driver-ref>mysql.8</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://b0e7856d06900d:ab0ab17b@us-cdbr-east-02.cleardb.com/heroku_c170eb5fd8e7182?reconnect=true</jdbc-url>
-    </data-source>
-    <data-source source="LOCAL" name="test@localhost" uuid="62f5af2e-0f7d-422a-bbbc-b049156fbfa2">
-      <driver-ref>mysql.8</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://localhost:3306/test?serverTimezone=UTC</jdbc-url>
-    </data-source>
     <data-source source="LOCAL" name="a0455578_wildeberriesDB@a0455578.xsph.ru" uuid="9f5ed1e9-43d6-4b02-85a7-b0df5fe72d6b">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>

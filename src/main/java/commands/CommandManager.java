@@ -270,15 +270,25 @@ public class CommandManager {
         }
         String fileName = document.getFileName();
 
-            for (String line : content) {
-                if (fileName.contains("categories")) {
-                    saveCategory(line);
-                } else if (fileName.contains("ignored-brands")) {
-                    saveIgnoredBrand(line);
-                } else {
-                    return sendMessage("Wrong file name! The file must contain 'categories' or 'ignored-brands' in its name!", message.getChatId());
-                }
+        if (fileName.contains("categories")) {
+            try {
+                Context.databaseManager.clearCategories();
+            } catch (DBConnectionException e) {
+                e.printStackTrace();
             }
+            for (String line : content) {
+                saveCategory(line);
+            }
+        } else if (fileName.contains("ignored-brands")) {
+            try {
+                Context.databaseManager.clearIgnoredBrands();
+            } catch (DBConnectionException e) {
+                e.printStackTrace();
+            }
+            for (String line : content) {
+                saveIgnoredBrand(line);
+            }
+        } else return sendMessage("Wrong file name! The file must contain 'categories' or 'ignored-brands' in its name!", message.getChatId());
         return sendMessage("list updated from file!", message.getChatId());
     }
 
