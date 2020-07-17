@@ -26,23 +26,19 @@ public class Context {
         return new Sender(bot, shopParser, databaseManager);
     }
 
-    public static Sender startSender() {
+    public static Sender restartSender() {
+        System.out.println("restarting thread Sender");
         try {
             sender = sender(bot, shopParser, databaseManager);
             sender.run();
+            sender = restartSender();
             System.out.println("thread Sender restarted");
         } catch (OutOfMemoryError throwable) {
             System.out.println("out of memory");
-            restartSender(30000);
+            sender = restartSender();
             throwable.printStackTrace();
         }
         return sender;
-    }
-
-    public static Sender restartSender(long time) {
-        System.out.println("restarting thread Sender");
-        sender.interrupt();
-        return startSender();
     }
 
     private static Bot bot() {

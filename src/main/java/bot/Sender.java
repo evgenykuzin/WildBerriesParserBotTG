@@ -52,8 +52,8 @@ public class Sender extends Thread {
         while (true) {
             if (running) {
                 if (categories.isEmpty()) {
-                    System.out.println("categories is empty(");
-                    bot.sendText("categories is empty(\nuse 'cat_add' command to add categories\nstopping...");
+                    System.out.println("categories list is empty(");
+                    bot.sendText("categories list is empty(\nuse 'cat_add' command to add categories\nstopping...");
                     running = Boolean.FALSE;
                     continue;
                 }
@@ -64,6 +64,11 @@ public class Sender extends Thread {
                         break;
                     }
                     Elements category = shopParser.parseCategory(url);
+                    if (category.isEmpty()) {
+                        System.out.println("category is empty(");
+                        bot.sendText("category is empty(");
+                        continue;
+                    }
                     for (Element element : category) {
                         if (!running) break;
                         Product parsedProduct = shopParser.parseProduct(element, ignoredBrands);
@@ -123,8 +128,9 @@ public class Sender extends Thread {
     }
 
     public void compareAndUpdateProducts(Product parsedProduct, double savedProductPrice) {
-        double newDiscountPercent = 100 - (parsedProduct.getNewPrice() * 100 / savedProductPrice);
-        boolean condition = parsedProduct.getNewPrice() < savedProductPrice;
+        double parsedProductPrice = parsedProduct.getNewPrice();
+        double newDiscountPercent = 100 - (parsedProductPrice * 100 / savedProductPrice);
+        boolean condition = parsedProductPrice < savedProductPrice;
         if (condition) {
             parsedProduct.setOldPrice(savedProductPrice);
             parsedProduct.setDiscountPercent(newDiscountPercent);
