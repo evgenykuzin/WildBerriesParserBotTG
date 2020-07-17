@@ -5,9 +5,11 @@ import context.Context;
 import database.DatabaseManager;
 import exceptions.DBConnectionException;
 import org.json.JSONObject;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.*;
@@ -24,9 +26,9 @@ import java.util.Set;
 public class CommandManager {
     private final ArrayList<Command> commands;
     private final Bot bot;
-    public final static String HELP_TEXT = "i am not useless!";
+    public final static String HELP_TEXT = "Вы можете отправить файл с именем 'categories' или 'ignored-brands', чтобы задать нужные категории или игнорировать заданные бренды";
 
-    public CommandManager(Bot bot, DatabaseManager databaseManager) {
+    public CommandManager(Bot bot) {
         this.bot = bot;
         commands = new ArrayList<>();
 
@@ -56,8 +58,8 @@ public class CommandManager {
             Set<String> existing = Context.sender.getCategories();
             for (String url : categories) {
                 if (!url.contains("http")) {
-                     bot.sendText(url + " is not valid url");
-                     continue;
+                    bot.sendText(url + " is not valid url");
+                    continue;
                 }
                 if (existing.contains(url)) {
                     bot.sendText(url + " already exists");
@@ -65,10 +67,10 @@ public class CommandManager {
                 }
                 bot.sendText("saving " + url);
                 try {
-                    databaseManager.saveCategory(url);
+                    Context.databaseManager.saveCategory(url);
                     Context.sender.addCategory(url);
                 } catch (DBConnectionException e) {
-                    databaseManager.reconnect();
+                    Context.databaseManager.reconnect();
                     bot.sendText("failed to save category " + url);
                     e.printStackTrace();
                 }
@@ -86,10 +88,10 @@ public class CommandManager {
             for (String url : categories) {
                 bot.sendText("removing " + url);
                 try {
-                    databaseManager.removeCategory(url);
+                    Context.databaseManager.removeCategory(url);
                     Context.sender.removeCategory(url);
                 } catch (DBConnectionException e) {
-                    databaseManager.reconnect();
+                    Context.databaseManager.reconnect();
                     bot.sendText("failed to remove category " + url);
                 }
             }
@@ -107,11 +109,11 @@ public class CommandManager {
             for (String url : categories) {
                 if (!Context.sender.getCategories().contains(url)) {
                     try {
-                        databaseManager.saveCategory(url);
+                        Context.databaseManager.saveCategory(url);
                         Context.sender.addCategory(url);
                     } catch (DBConnectionException e) {
                         bot.sendText("failed to save category " + url);
-                        databaseManager.reconnect();
+                        Context.databaseManager.reconnect();
                     }
                 }
             }
@@ -149,10 +151,10 @@ public class CommandManager {
                 }
                 bot.sendText("saving " + brand + " to ignore list");
                 try {
-                    databaseManager.saveIgnoredBrand(brand);
+                    Context.databaseManager.saveIgnoredBrand(brand);
                     Context.sender.addIgnoredBrand(brand);
                 } catch (DBConnectionException e) {
-                    databaseManager.reconnect();
+                    Context.databaseManager.reconnect();
                     bot.sendText("failed to save ignored brand " + brand);
                 }
 
@@ -170,10 +172,10 @@ public class CommandManager {
                 brand = brand.replaceFirst(" ", "");
                 bot.sendText("removing " + brand + " from ignore list");
                 try {
-                    databaseManager.removeIgnoredBrand(brand);
+                    Context.databaseManager.removeIgnoredBrand(brand);
                     Context.sender.removeIgnoredBrand(brand);
                 } catch (DBConnectionException e) {
-                    databaseManager.reconnect();
+                    Context.databaseManager.reconnect();
                     bot.sendText("failed to remove ignored brand " + brand);
                 }
             }
@@ -191,11 +193,11 @@ public class CommandManager {
             for (String brand : ignoredBrands) {
                 if (!Context.sender.getIgnoredBrands().contains(brand)) {
                     try {
-                        databaseManager.saveIgnoredBrand(brand);
+                        Context.databaseManager.saveIgnoredBrand(brand);
                         Context.sender.addIgnoredBrand(brand);
                     } catch (DBConnectionException e) {
                         bot.sendText("failed to save ignored brand " + brand);
-                        databaseManager.reconnect();
+                        Context.databaseManager.reconnect();
                         e.printStackTrace();
                     }
                 }
@@ -260,6 +262,52 @@ public class CommandManager {
         return string.replace("/" + command + " ", "").replaceAll(delimiters, ",").split(",");
     }
 
+    public BotApiMethod onDocument(Message message) {
+        Document document = message.getDocument();
+        List<String> content = getLinesFromDocument(document);
+        if (content.isEmpty()) {
+            return sendMessage("please, write the names of brands, you want to ignore, in the file", message.getChatId());
+        }
+        String fileName = document.getFileName();
+
+            for (String line : content) {
+                if (fileName.contains("categories")) {
+                    saveCategory(line);
+                } else if (fileName.contains("ignored-brands")) {
+                    saveIgnoredBrand(line);
+                } else {
+                    return sendMessage("Wrong file name! The file must contain 'categories' or 'ignored-brands' in its name!", message.getChatId());
+                }
+            }
+        return sendMessage("list updated from file!", message.getChatId());
+    }
+
+    private void saveIgnoredBrand(String line) {
+        if (!Context.sender.getIgnoredBrands().contains(line)) {
+            try {
+                Context.databaseManager.saveIgnoredBrand(line);
+                Context.sender.addIgnoredBrand(line);
+            } catch (DBConnectionException e) {
+                bot.sendText("failed to save " + line);
+                Context.databaseManager.reconnect();
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void saveCategory(String line) {
+        if (!Context.sender.getCategories().contains(line)) {
+            try {
+                Context.databaseManager.saveCategory(line);
+                Context.sender.addCategory(line);
+            } catch (DBConnectionException e) {
+                bot.sendText("failed to save " + line);
+                Context.databaseManager.reconnect();
+                e.printStackTrace();
+            }
+        }
+    }
+
     private List<String> getLinesFromDocument(Document document) {
         File file = null;
         try {
@@ -281,8 +329,8 @@ public class CommandManager {
     }
 
     public static File loadFileFromInternet(String file_name, String file_id, String token) throws IOException {
-        URL url = new URL("https://api.telegram.org/bot"+token+"/getFile?file_id="+file_id);
-        BufferedReader in = new BufferedReader(new InputStreamReader( url.openStream()));
+        URL url = new URL("https://api.telegram.org/bot" + token + "/getFile?file_id=" + file_id);
+        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
         String res = in.readLine();
         JSONObject jresult = new JSONObject(res);
         JSONObject path = jresult.getJSONObject("result");

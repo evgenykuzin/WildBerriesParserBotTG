@@ -64,10 +64,6 @@ public class Sender extends Thread {
                         break;
                     }
                     Elements category = shopParser.parseCategory(url);
-                    if (category.isEmpty()) {
-                        System.out.println(url + " category is empty(");
-                        continue;
-                    }
                     for (Element element : category) {
                         if (!running) break;
                         Product parsedProduct = shopParser.parseProduct(element, ignoredBrands);

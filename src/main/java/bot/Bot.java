@@ -35,7 +35,7 @@ public class Bot extends TelegramLongPollingBot {
             loadProps();
         }
         this.databaseManager = databaseManager;
-        commandManager = new CommandManager(this, databaseManager);
+        commandManager = new CommandManager(this);
         System.out.println("run!");
     }
 
@@ -44,6 +44,16 @@ public class Bot extends TelegramLongPollingBot {
         botName = botProps.getProperty("bot.name");
         botToken = botProps.getProperty("bot.token");
         //chatId = Long.parseLong(botProps.getProperty("bot.chat_id")); //вернуть назад!
+    }
+
+    private void onDocument(Message message) {
+        if (message.hasDocument()) {
+            try {
+                execute(commandManager.onDocument(message));
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void onText(Message message) {
@@ -75,6 +85,7 @@ public class Bot extends TelegramLongPollingBot {
         System.out.println("chatId = " + update.getMessage().getChatId());
         System.out.println(message.getText());
         onText(message);
+        onDocument(message);
     }
 
     public synchronized void sendTextToUser(long chatId, String s) {
