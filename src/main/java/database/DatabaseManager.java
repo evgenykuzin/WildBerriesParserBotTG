@@ -87,7 +87,7 @@ public class DatabaseManager {
         return map;
     }
 
-    public void saveProduct(Product product) throws DBConnectionException {
+    public void saveProduct(Product product) throws DBConnectionException, SQLIntegrityConstraintViolationException {
         try {
             PreparedStatement ps = connection.prepareStatement(
                     "INSERT INTO products (url, current_price) VALUES (?,?)");
@@ -97,6 +97,9 @@ public class DatabaseManager {
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
             throwables.printStackTrace();
             throw new DBConnectionException();
+        } catch (SQLIntegrityConstraintViolationException sicve) {
+            sicve.printStackTrace();
+            throw sicve;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }

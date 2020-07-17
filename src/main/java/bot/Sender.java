@@ -7,6 +7,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import parser.ShopParser;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -91,6 +92,7 @@ public class Sender extends Thread {
     }
 
     private void saveProductToDatabase(Product product) {
+        boolean duplicate = false;
         try {
             saveProduct(product);
             while (!backupSavedProducts.isEmpty()) {
@@ -105,12 +107,14 @@ public class Sender extends Thread {
             bot.sendText("connection problem... failed to save");
             databaseManager.reconnect();
             throwables.printStackTrace();
+        } catch (SQLIntegrityConstraintViolationException sicve) {
+            duplicate = sicve.getMessage().contains("Duplicate");
         } finally {
-            bot.sendText(product.constructMessage());
+            if (!duplicate) bot.sendText(product.constructMessage());
         }
     }
 
-    private void saveProduct(Product product) throws DBConnectionException {
+    private void saveProduct(Product product) throws DBConnectionException, SQLIntegrityConstraintViolationException {
         databaseManager.saveProduct(product);
         savedProducts.put(product.getUrl(), product.getNewPrice());
     }
