@@ -38,6 +38,7 @@ public class Sender extends Thread {
             if (savedProducts.isEmpty()) bot.sendText("categories list is empty...");
         } catch (DBConnectionException throwables) {
             bot.sendText("connection problem... failed to load data from database");
+            System.out.println("connection problem... failed to load data from database");
             databaseManager.reconnect();
             throwables.printStackTrace();
         }
@@ -99,12 +100,14 @@ public class Sender extends Thread {
                 Product p = backupSavedProducts.poll();
                 if (p.equals(product)) continue;
                 saveProduct(p);
+                System.out.println("product " + p + " saved from backup");
             }
         } catch (DBConnectionException throwables) {
             if (!backupSavedProducts.contains(product)){
                 backupSavedProducts.offer(product);
             }
-            bot.sendText("connection problem... failed to save");
+            //bot.sendText("connection problem... failed to save");
+            System.out.println("connection problem... failed to save product " + product);
             databaseManager.reconnect();
             throwables.printStackTrace();
         } catch (SQLIntegrityConstraintViolationException sicve) {
@@ -131,12 +134,14 @@ public class Sender extends Thread {
                     Product p = backupUpdatedProducts.poll();
                     if (p.equals(parsedProduct)) continue;
                     updateProduct(p);
+                    System.out.println("product " + p + " updated from backup");
                 }
             } catch (DBConnectionException throwables) {
                 if (!backupUpdatedProducts.contains(parsedProduct)){
                     backupUpdatedProducts.offer(parsedProduct);
                 }
-                bot.sendText("connection problem... failed to update");
+                //bot.sendText("connection problem... failed to update");
+                System.out.println("connection problem... failed to update product " + parsedProduct);
                 databaseManager.reconnect();
                 throwables.printStackTrace();
             } finally {
