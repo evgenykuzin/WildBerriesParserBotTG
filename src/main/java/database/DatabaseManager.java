@@ -60,6 +60,7 @@ public class DatabaseManager {
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            reconnect();
         }
         return map;
     }
@@ -79,6 +80,7 @@ public class DatabaseManager {
             throw sicve;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            reconnect();
         }
     }
 
@@ -96,6 +98,7 @@ public class DatabaseManager {
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            reconnect();
         }
     }
 

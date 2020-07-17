@@ -1,5 +1,6 @@
 package bot;
 
+import context.Context;
 import database.DatabaseManager;
 import entities.Product;
 import exceptions.DBConnectionException;
@@ -47,41 +48,46 @@ public class Sender extends Thread {
 
     @Override
     public void run() throws OutOfMemoryError {
-        System.out.println("restarted");
-        bot.sendText("restarted");
-        while (true) {
-            if (running) {
-                if (categories.isEmpty()) {
-                    System.out.println("categories list is empty(");
-                    bot.sendText("categories list is empty(\nuse 'cat_add' command to add categories\nstopping...");
-                    running = Boolean.FALSE;
-                    continue;
-                }
-                for (String url : categories) {
-                    if (!running) {
-                        System.out.println("sender stopped");
-                        bot.sendText("stopped!");
-                        break;
+        try {
+            System.out.println("restarted");
+            bot.sendText("restarted");
+            while (true) {
+                if (running) {
+                    if (categories.isEmpty()) {
+                        System.out.println("categories list is empty(");
+                        bot.sendText("categories list is empty(\nuse 'cat_add' command to add categories\nstopping...");
+                        running = Boolean.FALSE;
+                        continue;
                     }
-                    Elements category = shopParser.parseCategory(url);
-                    for (Element element : category) {
-                        if (!running) break;
-                        Product parsedProduct = shopParser.parseProduct(element, ignoredBrands);
-                        if (parsedProduct == null) continue;
-                        Double savedProductPrice = savedProducts.get(parsedProduct.getUrl());
-                        if (savedProductPrice == null) {
-                            if (!backupSavedProducts.contains(parsedProduct)) {
-                                saveProductToDatabase(parsedProduct);
-                            }
-                        } else {
-                            if (!backupUpdatedProducts.contains(parsedProduct)) {
-                                compareAndUpdateProducts(parsedProduct, savedProductPrice);
-                            }
+                    for (String url : categories) {
+                        if (!running) {
+                            System.out.println("sender stopped");
+                            bot.sendText("stopped!");
+                            break;
                         }
-                        waiting();
+                        Elements category = shopParser.parseCategory(url);
+                        for (Element element : category) {
+                            if (!running) break;
+                            Product parsedProduct = shopParser.parseProduct(element, ignoredBrands);
+                            if (parsedProduct == null) continue;
+                            Double savedProductPrice = savedProducts.get(parsedProduct.getUrl());
+                            if (savedProductPrice == null) {
+                                if (!backupSavedProducts.contains(parsedProduct)) {
+                                    saveProductToDatabase(parsedProduct);
+                                }
+                            } else {
+                                if (!backupUpdatedProducts.contains(parsedProduct)) {
+                                    compareAndUpdateProducts(parsedProduct, savedProductPrice);
+                                }
+                            }
+                            waiting();
+                        }
                     }
                 }
             }
+        } catch (Exception exception) {
+            Context.restartSender();
+            exception.printStackTrace();
         }
     }
 
@@ -121,7 +127,7 @@ public class Sender extends Thread {
             //bot.sendText("connection problem... failed to save");
             System.out.println("connection problem... failed to save product " + product);
             databaseManager.reconnect();
-            throwables.printStackTrace();
+//            throwables.printStackTrace();
         } catch (SQLIntegrityConstraintViolationException sicve) {
             duplicate = sicve.getMessage().contains("Duplicate");
         } finally {
@@ -151,9 +157,8 @@ public class Sender extends Thread {
                 //bot.sendText("connection problem... failed to update");
                 System.out.println("connection problem... failed to update product " + parsedProduct);
                 databaseManager.reconnect();
-                throwables.printStackTrace();
-            } catch (SQLIntegrityConstraintViolationException sicve) {
-                sicve.printStackTrace();
+                //throwables.printStackTrace();
+            } catch (SQLIntegrityConstraintViolationException ignored) {
             } finally {
                 bot.sendText(parsedProduct.constructMessage());
             }
