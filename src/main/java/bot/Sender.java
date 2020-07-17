@@ -3,11 +3,13 @@ package bot;
 import database.DatabaseManager;
 import entities.Product;
 import exceptions.DBConnectionException;
+import org.apache.logging.log4j.core.async.ArrayBlockingQueueFactory;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import parser.ShopParser;
 
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class Sender extends Thread {
     private final Bot bot;
@@ -16,8 +18,8 @@ public class Sender extends Thread {
     private final DatabaseManager databaseManager;
     private Set<String> ignoredBrands;
     private Map<String, Double> savedProducts;
-    private final List<Product> backupSavedProducts;
-    private final List<Product> backupUpdatedProducts;
+    private final Queue<Product> backupSavedProducts;
+    private final Queue<Product> backupUpdatedProducts;
     private volatile Boolean running;
     private volatile long lastCall = 0;
 
@@ -25,8 +27,8 @@ public class Sender extends Thread {
         this.bot = bot;
         this.shopParser = shopParser;
         this.databaseManager = databaseManager;
-        backupSavedProducts = new ArrayList<>(20);
-        backupUpdatedProducts = new ArrayList<>(20);
+        backupSavedProducts = new ArrayBlockingQueue<>(20);
+        backupUpdatedProducts = new ArrayBlockingQueue<>(20);
         try {
             categories = databaseManager.getAllCategories();
             ignoredBrands = databaseManager.getAllIgnoredBrands();
@@ -91,13 +93,11 @@ public class Sender extends Thread {
     private void saveProductToDatabase(Product product) {
         try {
             saveProduct(product);
-                for (Product p : backupSavedProducts) {
-                    saveProduct(p);
-                    backupSavedProducts.remove(p);
+                while (!backupSavedProducts.isEmpty()) {
+                    saveProduct(backupSavedProducts.poll());
                 }
-
         } catch (DBConnectionException throwables) {
-            backupSavedProducts.add(product);
+            backupSavedProducts.offer(product);
             bot.sendText("connection problem... failed to save");
             throwables.printStackTrace();
         } finally {
@@ -118,12 +118,11 @@ public class Sender extends Thread {
             parsedProduct.setDiscountPercent(newDiscountPercent);
             try {
                 updateProduct(parsedProduct);
-                for (Product p : backupUpdatedProducts) {
-                    updateProduct(p);
-                    backupUpdatedProducts.remove(p);
+                while (!backupUpdatedProducts.isEmpty()) {
+                    updateProduct(backupUpdatedProducts.poll());
                 }
             } catch (DBConnectionException throwables) {
-                backupUpdatedProducts.add(parsedProduct);
+                backupUpdatedProducts.offer(parsedProduct);
                 bot.sendText("connection problem... failed to update");
                 throwables.printStackTrace();
             } finally {

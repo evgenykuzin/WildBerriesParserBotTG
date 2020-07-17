@@ -8,10 +8,8 @@ import org.junit.jupiter.api.Test;
 import parser.ShopParser;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class SenderTest {
     @Test
@@ -65,6 +63,18 @@ public class SenderTest {
         map.put("d", 10.0);
         map.replace("d", 15.0);
         System.out.println(map.get("d"));
+    }
+
+    @Test
+    public void testQueue() {
+        Queue<String> queue = new ArrayBlockingQueue<>(20);
+        for (int i = 0; i < 30; i++) {
+            queue.offer("string" + i);
+        }
+        while (!queue.isEmpty()) {
+            System.out.println(queue.poll());
+        }
+        System.out.println("queue = "+queue);
     }
 
 }
