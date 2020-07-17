@@ -70,9 +70,13 @@ public class Sender extends Thread {
                         if (parsedProduct == null) continue;
                         Double savedProductPrice = savedProducts.get(parsedProduct.getUrl());
                         if (savedProductPrice == null) {
-                            saveProductToDatabase(parsedProduct);
+                            if (!backupSavedProducts.contains(parsedProduct)) {
+                                saveProductToDatabase(parsedProduct);
+                            }
                         } else {
-                            compareAndUpdateProducts(parsedProduct, savedProductPrice);
+                            if (!backupUpdatedProducts.contains(parsedProduct)) {
+                                compareAndUpdateProducts(parsedProduct, savedProductPrice);
+                            }
                         }
                         waiting();
                     }
