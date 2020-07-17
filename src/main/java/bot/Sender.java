@@ -92,11 +92,11 @@ public class Sender extends Thread {
 
     private void saveProductToDatabase(Product product) {
         try {
-            if (!backupSavedProducts.contains(product)) {
-                saveProduct(product);
-            }
+            saveProduct(product);
             while (!backupSavedProducts.isEmpty()) {
-                saveProduct(backupSavedProducts.poll());
+                Product p = backupSavedProducts.poll();
+                if (p.equals(product)) continue;
+                saveProduct(p);
             }
         } catch (DBConnectionException throwables) {
             backupSavedProducts.offer(product);
@@ -120,11 +120,11 @@ public class Sender extends Thread {
             parsedProduct.setOldPrice(savedProductPrice);
             parsedProduct.setDiscountPercent(newDiscountPercent);
             try {
-                if (!backupUpdatedProducts.contains(parsedProduct)) {
-                    updateProduct(parsedProduct);
-                }
+                updateProduct(parsedProduct);
                 while (!backupUpdatedProducts.isEmpty()) {
-                    updateProduct(backupUpdatedProducts.poll());
+                    Product p = backupUpdatedProducts.poll();
+                    if (p.equals(parsedProduct)) continue;
+                    updateProduct(p);
                 }
             } catch (DBConnectionException throwables) {
                 backupUpdatedProducts.offer(parsedProduct);
