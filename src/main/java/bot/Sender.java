@@ -99,7 +99,9 @@ public class Sender extends Thread {
                 saveProduct(p);
             }
         } catch (DBConnectionException throwables) {
-            backupSavedProducts.offer(product);
+            if (!backupSavedProducts.contains(product)){
+                backupSavedProducts.offer(product);
+            }
             bot.sendText("connection problem... failed to save");
             databaseManager.reconnect();
             throwables.printStackTrace();
@@ -127,7 +129,9 @@ public class Sender extends Thread {
                     updateProduct(p);
                 }
             } catch (DBConnectionException throwables) {
-                backupUpdatedProducts.offer(parsedProduct);
+                if (!backupUpdatedProducts.contains(parsedProduct)){
+                    backupUpdatedProducts.offer(parsedProduct);
+                }
                 bot.sendText("connection problem... failed to update");
                 databaseManager.reconnect();
                 throwables.printStackTrace();
