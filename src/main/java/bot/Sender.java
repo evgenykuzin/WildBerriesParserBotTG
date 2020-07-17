@@ -65,8 +65,7 @@ public class Sender extends Thread {
                     }
                     Elements category = shopParser.parseCategory(url);
                     if (category.isEmpty()) {
-                        System.out.println("category is empty(");
-                        bot.sendText("category is empty(");
+                        System.out.println(url + " category is empty(");
                         continue;
                     }
                     for (Element element : category) {
