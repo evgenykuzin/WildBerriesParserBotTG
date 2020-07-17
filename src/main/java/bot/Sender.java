@@ -3,7 +3,6 @@ package bot;
 import database.DatabaseManager;
 import entities.Product;
 import exceptions.DBConnectionException;
-import org.apache.logging.log4j.core.async.ArrayBlockingQueueFactory;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import parser.ShopParser;
@@ -48,7 +47,7 @@ public class Sender extends Thread {
         System.out.println("restarted");
         bot.sendText("restarted");
         while (true) {
-            if (running && !databaseManager.isWaiting()) {
+            if (running) {
                 if (categories.isEmpty()) {
                     System.out.println("categories is empty(");
                     bot.sendText("categories is empty(\nuse 'cat_add' command to add categories\nstopping...");

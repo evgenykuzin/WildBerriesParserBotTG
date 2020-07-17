@@ -61,7 +61,7 @@ public class DatabaseManager {
                 return resultSet.getDouble("current_price");
             }
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
-            waitingDatabase(reconnectingDBTime);
+            throwables.printStackTrace();
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -80,7 +80,7 @@ public class DatabaseManager {
                 map.put(url, price);
             }
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
-            waitingDatabase(reconnectingDBTime);
+            throwables.printStackTrace();
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -96,7 +96,7 @@ public class DatabaseManager {
             ps.setString(2, String.valueOf(product.getNewPrice()));
             ps.executeUpdate();
         } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
-            waitingDatabase(reconnectingDBTime);
+            throwables.printStackTrace();
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -112,23 +112,24 @@ public class DatabaseManager {
             ps.setDouble(1, product.getNewPrice());
             ps.setString(2, product.getUrl());
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
-            waitingDatabase(reconnectingDBTime);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
+            throwables.printStackTrace();
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
-    public Set<Product> getAllProducts() {
+    public Set<Product> getAllProducts() throws DBConnectionException {
         Set<Product> set = new HashSet<>();
         try {
             ResultSet resultSet = connection.prepareStatement("SELECT * FROM products").executeQuery();
             while (resultSet.next()) {
                 set.add(constructProduct(resultSet));
             }
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
-            waitingDatabase(reconnectingDBTime);
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
+            throwables.printStackTrace();
+            throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -160,7 +161,8 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO ignore_brands (brand) values(?)");
             ps.setString(1, brand);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
+            throwables.printStackTrace();
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -172,7 +174,8 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("DELETE FROM ignore_brands WHERE brand = ?");
             ps.setString(1, brand);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
+            throwables.printStackTrace();
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -188,7 +191,8 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO categories (url) values(?)");
             ps.setString(1, url);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
+            throwables.printStackTrace();
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -200,7 +204,8 @@ public class DatabaseManager {
             PreparedStatement ps = connection.prepareStatement("DELETE FROM categories WHERE url = ?");
             ps.setString(1, url);
             ps.executeUpdate();
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
+            throwables.printStackTrace();
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -214,7 +219,8 @@ public class DatabaseManager {
             while (resultSet.next()) {
                 set.add(resultSet.getString(column));
             }
-        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException ssee) {
+        } catch (SQLSyntaxErrorException | SQLNonTransientConnectionException | ConnectionIsClosedException | CommunicationsException throwables) {
+            throwables.printStackTrace();
             throw new DBConnectionException();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
