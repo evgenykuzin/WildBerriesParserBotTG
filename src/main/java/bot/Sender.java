@@ -105,6 +105,7 @@ public class Sender extends Thread {
     public void executeBackup() throws DBConnectionException, SQLIntegrityConstraintViolationException {
         while (!backupSavedProducts.isEmpty()) {
             Product p = backupSavedProducts.poll();
+            if (savedProducts.containsKey(p.getUrl())) continue;
             saveProduct(p);
             System.out.println("product " + p + " saved from backup");
         }
