@@ -164,7 +164,7 @@ public class Sender extends Thread {
 
     private void updateProduct(Product product) throws DBConnectionException {
         databaseManager.updateProduct(product);
-        savedProducts.replace(product.getUrl(), product.getNewPrice());
+        savedProducts.put(product.getUrl(), product.getNewPrice());
     }
 
     public void addCategory(String brand) {
