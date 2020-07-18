@@ -40,7 +40,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void loadProps() {
-        Properties botProps = PropertiesManager.getProperties("testbot"); //заменить на bot!
+        Properties botProps = PropertiesManager.getProperties("bot"); //заменить на bot!
         botName = botProps.getProperty("bot.name");
         botToken = botProps.getProperty("bot.token");
         //chatId = Long.parseLong(botProps.getProperty("bot.chat_id")); //вернуть назад!
