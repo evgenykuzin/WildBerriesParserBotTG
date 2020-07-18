@@ -30,7 +30,7 @@ public class Context {
         System.out.println("restarting thread Sender");
         try {
             sender = sender(bot, shopParser, databaseManager);
-            sender.start();
+            sender.run();
             sender = restartSender();
             System.out.println("thread Sender restarted");
         } catch (OutOfMemoryError throwable) {
