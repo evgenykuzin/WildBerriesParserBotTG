@@ -16,11 +16,11 @@ import java.util.Properties;
 public class Bot extends TelegramLongPollingBot {
     private String botName;
     private String botToken;
-    private long chatId = 443215848;
     private Sender sender;
     private final CommandManager commandManager;
     private final DatabaseManager databaseManager;
-    public static final long testChatId = 328018558; //убрать!
+    private static final long chatId = 443215848;
+    public static final long testChatId = 328018558;
 
     public Bot() {
         this(Context.databaseManager);
@@ -40,7 +40,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void loadProps() {
-        Properties botProps = PropertiesManager.getProperties("bot"); //заменить на bot!
+        Properties botProps = PropertiesManager.getProperties("bot");
         botName = botProps.getProperty("bot.name");
         botToken = botProps.getProperty("bot.token");
         //chatId = Long.parseLong(botProps.getProperty("bot.chat_id")); //вернуть назад!
@@ -59,12 +59,14 @@ public class Bot extends TelegramLongPollingBot {
     private void onText(Message message) {
         if (message.hasText()) {
             String text = message.getText();
+            System.out.println("chatId = " + message.getChatId());
+            System.out.println(text);
             if (text.equals("/start")) {
-                sendText("start parsing...");
+                sendTextToUser("start parsing...", message.getChatId());
                 sender = Context.restartSender();
                 sender.setRunning(Boolean.TRUE);
             } else if (text.equals("/stop")) {
-                sendText("stopping...");
+                sendTextToUser("stopping...", message.getChatId());
                 sender.setRunning(Boolean.FALSE);
             }
             for (Command command : commandManager.getCommands()) {
@@ -88,8 +90,8 @@ public class Bot extends TelegramLongPollingBot {
         onDocument(message);
     }
 
-    public synchronized void sendTextToUser(long chatId, String s) {
-        SendMessage sendMessage = constructSendMessage(chatId, s);
+    public synchronized void sendTextToUser(String text, long chatId) {
+        SendMessage sendMessage = constructSendMessage(text, chatId);
         try {
             execute(sendMessage);
         } catch (TelegramApiException e) {
@@ -97,23 +99,12 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
-    public synchronized void sendPhotoToUser(long chatId, String photo) {
-        SendPhoto sendPhoto = new SendPhoto();
-        sendPhoto.setChatId(chatId);
-        sendPhoto.setPhoto(photo);
-        try {
-            execute(sendPhoto);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
-
     public synchronized void sendText(String text) {
-        sendTextToUser(chatId, text);
-        sendTextToUser(testChatId, text);
+        sendTextToUser(text, chatId);
+        sendTextToUser(text, testChatId);
     }
 
-    public SendMessage constructSendMessage(long chatId, String text) {
+    public SendMessage constructSendMessage(String text, long chatId) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.enableMarkdown(true);
         sendMessage.setChatId(chatId);
@@ -125,16 +116,8 @@ public class Bot extends TelegramLongPollingBot {
         return chatId;
     }
 
-    public Sender getSender() {
-        return sender;
-    }
-
     public void setSender(Sender sender) {
         this.sender = sender;
-    }
-
-    public DatabaseManager getDatabaseManager() {
-        return databaseManager;
     }
 
     @Override

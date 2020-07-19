@@ -2,7 +2,6 @@ package commands;
 
 import bot.Bot;
 import context.Context;
-import database.DatabaseManager;
 import exceptions.DBConnectionException;
 import org.json.JSONObject;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -232,7 +231,7 @@ public class CommandManager {
     }
 
     private SendMessage sendMessage(String text, long chatId) {
-        return bot.constructSendMessage(chatId, text); //заменить на bot.getChatId()
+        return bot.constructSendMessage(text, chatId); //заменить на bot.getChatId()
     }
 
     private SendDocument sendDocument(Iterable<? extends CharSequence> content, String fileName, long chatId) {
@@ -293,6 +292,7 @@ public class CommandManager {
                 saveIgnoredBrand(line);
             }
         } else return sendMessage("Wrong file name! The file must contain 'categories' or 'ignored-brands' in its name!", message.getChatId());
+        System.out.println("list updated from file");
         return sendMessage("list updated from file!", message.getChatId());
     }
 

@@ -86,8 +86,8 @@ public class Sender extends Thread {
                 }
             }
         } catch (Exception exception) {
-            Context.restartSender();
             exception.printStackTrace();
+            Context.restartSender();
         }
     }
 
