@@ -8,5 +8,11 @@
       <jdbc-url>jdbc:mysql://a0455578.xsph.ru:3306/a0455578_wildeberriesDB?serverTimezone=UTC</jdbc-url>
       <time-zone>UTC</time-zone>
     </data-source>
+    <data-source source="LOCAL" name="a0456204_wildeberriesDB@a0456204.xsph.ru" uuid="0feccb5f-e001-44fa-af2d-e273e4215209">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://a0456204.xsph.ru:3306/a0456204_wildeberriesDB?serverTimezone=UTC&amp;authoReconnect=true</jdbc-url>
+    </data-source>
   </component>
 </project>

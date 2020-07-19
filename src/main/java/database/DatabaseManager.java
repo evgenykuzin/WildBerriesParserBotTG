@@ -39,7 +39,7 @@ public class DatabaseManager {
     }
 
     private void loadProps() {
-        Properties dbProps = PropertiesManager.getProperties("db");
+        Properties dbProps = PropertiesManager.getProperties("db2");
         url = dbProps.getProperty("db.url");
         name = dbProps.getProperty("db.name");
         pass = dbProps.getProperty("db.password");
